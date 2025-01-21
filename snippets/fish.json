@@ -1,0 +1,48 @@
+{
+  "Function Definition": {
+    "prefix": "fun",
+    "body": [
+      "function ${1:name}",
+      "\t$0",
+      "end"
+    ],
+    "description": "Create a function"
+  },
+  "If Statement": {
+    "prefix": "if",
+    "body": [
+      "if ${1:condition}",
+      "\t$0",
+      "end"
+    ],
+    "description": "Create an if statement"
+  },
+  "For Loop": {
+    "prefix": "for",
+    "body": [
+      "for ${1:item} in ${2:list}",
+      "\t$0",
+      "end"
+    ],
+    "description": "Create a for loop"
+  },
+  "Switch Statement": {
+    "prefix": "switch",
+    "body": [
+      "switch ${1:value}",
+      "\tcase ${2:pattern}",
+      "\t\t$0",
+      "end"
+    ],
+    "description": "Create a switch statement"
+  },
+  "Begin Block": {
+    "prefix": "begin",
+    "body": [
+      "begin",
+      "\t$0",
+      "end"
+    ],
+    "description": "Create a begin block"
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "name": "vscode-fish-lsp",
+  "displayName": "Fish Language Support",
+  "description": "Fish shell language support via fish-lsp",
+  "version": "0.1.0",
+  "publisher": "ndonfris",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ndonfris/fish-lsp"
+  },
+  "homepage": "https://fish-lsp.dev",
+  "bugs": {
+    "url": "https://github.com/ndonfris/fish-lsp/issues"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Formatters"
+  ],
+  "keywords": [
+    "fish",
+    "shell",
+    "lsp",
+    "language-server",
+    "fish-shell"
+  ],
+  "activationEvents": [
+    "onLanguage:fish"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "fish",
+        "aliases": [
+          "Fish",
+          "fish"
+        ],
+        "extensions": [
+          ".fish"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "fish",
+        "scopeName": "source.fish",
+        "path": "./syntaxes/fish.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "fish",
+        "path": "./snippets/fish.json"
+      }
+    ],
+    "configurationDefaults": {
+      "[fish]": {
+        "editor.wordSeparators": "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?",
+        "editor.tabSize": 4
+      }
+    }
+  },
+  "configuration": {
+    "type": "object",
+    "title": "Fish Language Server",
+    "properties": {
+      "fish-lsp.enable": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable/disable Fish language server"
+      },
+      "fish-lsp.trace.server": {
+        "type": "string",
+        "enum": [
+          "off",
+          "messages",
+          "verbose"
+        ],
+        "default": "off",
+        "description": "Trace communication between VS Code and language server"
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "dependencies": {
+    "fish-lsp": "^1.0.8",
+    "vscode-languageclient": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^20.2.5",
+    "@types/vscode": "^1.75.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.8",
+    "@typescript-eslint/parser": "^5.59.8",
+    "@vscode/test-electron": "^2.3.2",
+    "eslint": "^8.41.0",
+    "glob": "^8.1.0",
+    "mocha": "^10.2.0",
+    "typescript": "^5.1.3"
+  }
+}

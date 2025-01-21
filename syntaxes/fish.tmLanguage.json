@@ -1,0 +1,93 @@
+{
+  "scopeName": "source.fish",
+  "name": "Fish",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#variables"
+    },
+    {
+      "include": "#commands"
+    },
+    {
+      "include": "#operators"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "match": "#.*$",
+          "name": "comment.line.number-sign.fish"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.fish",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "include": "#variables"
+            },
+            {
+              "include": "#escapes"
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.fish",
+          "begin": "'",
+          "end": "'"
+        }
+      ]
+    },
+    "variables": {
+      "patterns": [
+        {
+          "match": "\\$\\w+",
+          "name": "variable.other.fish"
+        },
+        {
+          "match": "\\$\\{[^}]*\\}",
+          "name": "variable.other.fish"
+        }
+      ]
+    },
+    "commands": {
+      "patterns": [
+        {
+          "match": "\\b(function|if|else|switch|case|while|for|in|begin|end|return|and|or|not|set|read|echo|command|builtin)\\b",
+          "name": "keyword.control.fish"
+        },
+        {
+          "match": "(?<=^|;|\\s)(\\w+)(?=\\s|$)",
+          "name": "support.function.fish"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "match": "(?<=\\s)(\\||\\||&&|>|>>|<|<<|&)(?=\\s|$)",
+          "name": "keyword.operator.fish"
+        }
+      ]
+    },
+    "escapes": {
+      "patterns": [
+        {
+          "match": "\\\\[\\\\\"\\$\\n\\t]",
+          "name": "constant.character.escape.fish"
+        }
+      ]
+    }
+  }
+}
