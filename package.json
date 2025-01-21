@@ -98,10 +98,12 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "install:linked": "fish -c 'command -q fish-lsp' && yarn uninstall fish-lsp && yarn link fish-lsp",
+    "install:default": "yarn unlink fish-lsp && yarn add fish-lsp"
   },
   "dependencies": {
-    "fish-lsp": "^1.0.8",
+    "rimraf": "^6.0.1",
     "vscode-languageclient": "^8.1.0"
   },
   "devDependencies": {

@@ -8,6 +8,88 @@
     ],
     "description": "Create a function"
   },
+  "While true Statement": {
+    "prefix": "wht",
+    "body": [
+      "while true",
+      "\t$0",
+      "end"
+    ],
+    "description": "Create a while true statement"
+  },
+  "While statement": {
+    "prefix": "whi",
+    "body": [
+      "while ${1:condition}",
+      "\t$0",
+      "end"
+    ],
+    "description": "Create an while statement"
+  },
+  "Complete Short/Long Command": {
+    "prefix": "complete",
+    "body": [
+      "complete -c ${1:command} -s ${2:short_flag} -l ${3:long_flag} -d '${4:description}'$0"
+    ],
+    "description": "Create short/long completions for a command"
+  },
+  "Complete args Command": {
+    "prefix": "complete",
+    "body": [
+      "complete -c ${1:command} -a '$0'"
+    ],
+    "description": "Create argument completions for a command"
+  },
+  "Abbreviation Command": {
+    "prefix": "abbr",
+    "body": [
+      "abbr -a ${1:abbreviation} '${2:abbreviation}'$0"
+    ],
+    "description": "Create an abbreviation"
+  },
+  "Abbreviation set cursor Command": {
+    "prefix": "abbr",
+    "body": [
+      "abbr -a ${1:abbreviation} --set-cursor=! '${2:abbreviation}'$0 # include ! in the abbreviation to set the cursor position"
+    ],
+    "description": "Create an abbreviation with cursor position"
+  },
+  "Alias Command": {
+    "prefix": "alias",
+    "body": [
+      "alias ${1:name} '${2:command}'$0"
+    ],
+    "description": "Create an alias"
+  },
+  "Argparse Command": {
+    "prefix": "argparse",
+    "body": [
+      "argparse ${1:options} -- ${2: $argv} ",
+      "or return$0"
+    ],
+    "description": "Create an argparse command"
+  },
+  "Set already set Variable ": {
+    "prefix": "set",
+    "body": [
+      "set -q ${1:variable}; and set ${1:variable} ${2:value}$0"
+    ],
+    "description": "Set a variable if its already set"
+  },
+  "Set unset Variable ": {
+    "prefix": "set",
+    "body": [
+      "not set -q ${1:variable}; and set ${1:variable} ${2:value}$0"
+    ],
+    "description": "Set a variable if it is not already set"
+  },
+  "Set unset/overwrite Variable ": {
+    "prefix": "set",
+    "body": [
+      "not set -q ${1:variable} && set ${1:variable} ${2:unset_value} || set ${1:variable} ${3:overwrite_value}$0"
+    ],
+    "description": "Set a variable if it is not already set or overwrite it"
+  },
   "If Statement": {
     "prefix": "if",
     "body": [
@@ -44,5 +126,75 @@
       "end"
     ],
     "description": "Create a begin block"
+  },
+  "Sequence increment Command": {
+    "prefix": "seq",
+    "body": [
+      "seq ${1:first} ${2:inc} ${3:last} "
+    ],
+    "description": "Create a sequence command. first-increment-last"
+  },
+  "Math increment": {
+    "prefix": "math",
+    "body": [
+      "math ${1:$i}+${2:1}"
+    ],
+    "description": "Create a increment math command"
+  },
+  "Set local": {
+    "prefix": "set",
+    "body": [
+      "set -l ${1:variable} ${2:value}"
+    ],
+    "description": "Set a local variable"
+  },
+  "Set export": {
+    "prefix": "set",
+    "body": [
+      "set -x ${1:variable} ${2:value}"
+    ],
+    "description": "Set a global variable"
+  },
+  "Set global": {
+    "prefix": "set",
+    "body": [
+      "set -g ${1:variable} ${2:value}"
+    ],
+    "description": "Set a global variable"
+  },
+  "Set global export": {
+    "prefix": "set",
+    "body": [
+      "set -gx ${1:variable} ${2:value}"
+    ],
+    "description": "Set a global export variable"
+  },
+  "Set counter": {
+    "prefix": "set",
+    "body": [
+      "set -l ${1:counter} ${2:1}"
+    ],
+    "description": "Set a counter"
+  },
+  "Set counter increment": {
+    "prefix": "set",
+    "body": [
+      "set ${1:counter} (math ${1:counter}+1)"
+    ],
+    "description": "Set a counter increment"
+  },
+  "Test String empty": {
+    "prefix": "test",
+    "body": [
+      "test -z ${1:string}"
+    ],
+    "description": "Test if a string is empty"
+  },
+  "Test String non-empty": {
+    "prefix": "test",
+    "body": [
+      "test -n ${1:string}"
+    ],
+    "description": "Test if a string is non-empty"
   }
 }
