@@ -47,14 +47,14 @@ export async function activate(context: ExtensionContext) {
     synchronize: {
       fileEvents: workspace.createFileSystemWatcher('**/*.fish')
     },
-    outputChannel: window.createOutputChannel('Fish Language Server'),
-    traceOutputChannel: window.createOutputChannel('Fish Language Server Trace')
+    outputChannel: window.createOutputChannel('fish-lsp'),
+    traceOutputChannel: window.createOutputChannel('fish-lsp Trace')
   };
 
   // Create the language client
   client = new LanguageClient(
-    'fish-language-server',
-    'Fish Language Server',
+    'fish-lsp',
+    'fish-lsp',
     serverOptions,
     clientOptions
   );

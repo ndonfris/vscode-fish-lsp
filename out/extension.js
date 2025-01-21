@@ -37,11 +37,11 @@ async function activate(context) {
         synchronize: {
             fileEvents: vscode_1.workspace.createFileSystemWatcher('**/*.fish')
         },
-        outputChannel: vscode_1.window.createOutputChannel('Fish Language Server'),
-        traceOutputChannel: vscode_1.window.createOutputChannel('Fish Language Server Trace')
+        outputChannel: vscode_1.window.createOutputChannel('fish-lsp'),
+        traceOutputChannel: vscode_1.window.createOutputChannel('fish-lsp Trace')
     };
     // Create the language client
-    client = new node_1.LanguageClient('fish-language-server', 'Fish Language Server', serverOptions, clientOptions);
+    client = new node_1.LanguageClient('fish-lsp', 'fish-lsp', serverOptions, clientOptions);
     try {
         console.log('Starting language client...');
         await client.start();

@@ -1,4 +1,6 @@
-# @fish-lsp-fV
+# @fish-lsp-disable
+
+# 
 
 
 

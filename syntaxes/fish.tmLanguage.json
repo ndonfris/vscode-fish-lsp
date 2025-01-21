@@ -22,6 +22,14 @@
     "comments": {
       "patterns": [
         {
+          "match": "(#\\s*@)(fish-lsp-(?:disable|enable)(?:-next-line)?)((?:\\s+[0-9\\s]*)?$)",
+          "captures": {
+            "1": { "name": "comment.line.number-sign.fish" },
+            "2": { "name": "keyword.control.fish-lsp" },
+            "3": { "name": "comment.line.number-sign.fish" }
+          }
+        },
+        {
           "match": "#.*$",
           "name": "comment.line.number-sign.fish"
         }
