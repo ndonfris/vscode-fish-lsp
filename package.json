@@ -1,5 +1,5 @@
 {
-  "name": "vscode-fish-lsp",
+  "name": "fish-lsp",
   "displayName": "Fish Language Support",
   "description": "Fish shell language support via fish-lsp",
   "version": "0.1.0",
@@ -103,6 +103,7 @@
     "install:default": "yarn unlink fish-lsp && yarn add fish-lsp"
   },
   "dependencies": {
+    "fish-lsp": "^1.0.8-3",
     "rimraf": "^6.0.1",
     "vscode-languageclient": "^8.1.0"
   },
