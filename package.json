@@ -10,6 +10,11 @@
     "type": "git",
     "url": "https://github.com/ndonfris/fish-lsp"
   },
+  "icon": "images/fish-lsp-icon.svg",
+  "galleryBanner": {
+    "color": "#2c3e50",
+    "theme": "dark"
+  },
   "homepage": "https://fish-lsp.dev",
   "bugs": {
     "url": "https://github.com/ndonfris/fish-lsp/issues"
