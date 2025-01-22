@@ -8,3 +8,9 @@ src/**
 **/*.map
 **/*.ts
 **.fish
+README.md
+images/**
+!images/fish-lsp-logo.png
+*.tgz
+*.vsix
+eslint.config.mjs

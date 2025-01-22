@@ -1,6 +1,7 @@
 
 node_modules
 out
-yarn.lock
 package-lock.json
-yarn.lock
+
+*.tgz
+*.vsix
