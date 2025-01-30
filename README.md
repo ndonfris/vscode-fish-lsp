@@ -34,11 +34,11 @@ Install the extension from the [VSCode Marketplace](https://marketplace.visualst
 code --install-extension ndonfris.fish-lsp
 ```
 
-<!-- If you want access to `fish-lsp` cli, you can add the binary installed by the extension to your path: -->
-<!---->
-<!-- ```fish -->
-<!-- fish_add_path ~/.vscode/extensions/ndonfris.fish-lsp-*/bin -->
-<!-- ``` -->
+If you want access to `fish-lsp` cli, you can add the binary installed by the extension to your path:
+
+```fish
+fish_add_path ~/.vscode/extensions/ndonfris.fish-lsp-*/node_modules/fish-lsp/bin
+```
 
 ## Configuration
 
@@ -48,11 +48,11 @@ This extension provides a few configuration options to customize the behavior of
 
 ```fish
 # fish_lsp_enabled_handlers <ARRAY>
-# enables the fish-lsp handlers (options: 'popups', 'formatting', 'complete', 'hover', 'rename', 'definition', 'references', 'diagnostics', 'signatureHelp', 'codeAction')
+# enables the fish-lsp handlers (options: 'popups', 'formatting', 'complete', 'hover', 'rename', 'definition', 'references', 'diagnostics', 'signatureHelp', 'codeAction', 'inlayHint')
 set -gx fish_lsp_enabled_handlers
 
 # fish_lsp_disabled_handlers <ARRAY>
-# disables the fish-lsp handlers (options: 'popups', 'formatting', 'complete', 'hover', 'rename', 'definition', 'references', 'diagnostics', 'signatureHelp', 'codeAction')
+# disables the fish-lsp handlers (options: 'popups', 'formatting', 'complete', 'hover', 'rename', 'definition', 'references', 'diagnostics', 'signatureHelp', 'codeAction', 'inlayHint')
 set -gx fish_lsp_disabled_handlers
 
 # fish_lsp_commit_characters <ARRAY>
@@ -75,7 +75,7 @@ set -gx fish_lsp_modifiable_paths
 
 # fish_lsp_diagnostic_disable_error_codes <ARRAY>
 # disable diagnostics for matching error codes (default: [])
-# (options: 1001, 1002, 1003, 1004, 2001, 2002, 2003, 3001, 3002, 3003)
+# (options: 1001, 1002, 1003, 1004, 2001, 2002, 2003, 3001, 3002, 3003, 4001, 4002, 4003, 4004, 5001)
 set -gx fish_lsp_diagnostic_disable_error_codes
 
 # fish_lsp_max_background_files <NUMBER>
