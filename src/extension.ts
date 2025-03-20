@@ -9,30 +9,18 @@ import {
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { homedir } from 'os';
+import { getServerPath } from './server';
 
 const execFileAsync = promisify(execFile);
 
 let client: LanguageClient;
 
 export async function activate(context: ExtensionContext) {
-  // Get path to fish-lsp binary in node_modules
-  const serverPath = path.join(
-    context.extensionPath,
-    'node_modules',
-    'fish-lsp',
-    'bin',
-    'fish-lsp'
-  );
-
-  // Verify server path exists
-  try {
-    await fs.promises.access(serverPath, fs.constants.X_OK);
-    console.log('Server path exists and is executable:', serverPath);
-  } catch (err) {
-    console.error('Server path error:', err);
-    window.showErrorMessage(`Failed to find fish-lsp binary at ${serverPath}`);
-    throw err;
-  }
+  
+  // Check if user wants to use global executable
+  const config = workspace.getConfiguration('fish-lsp');
+  // Determine which fish-lsp executable to use
+  const serverPath = await getServerPath(context, config);
 
   // Server options - do not specify transport as fish-lsp handles stdio by default
   const serverOptions: ServerOptions = {
@@ -53,7 +41,15 @@ export async function activate(context: ExtensionContext) {
       fileEvents: workspace.createFileSystemWatcher('**/*.fish')
     },
     outputChannel: window.createOutputChannel('fish-lsp'),
-    traceOutputChannel: window.createOutputChannel('fish-lsp Trace')
+    traceOutputChannel: window.createOutputChannel('fish-lsp Trace'),
+    // workspaceFolder: {
+    //   uri: {
+    //     scheme
+    //   }
+    // }
+    markdown: {
+      isTrusted: true,
+    },
   };
 
   // Create the language client

@@ -45,21 +45,14 @@
     "language-server",
     "fish-shell"
   ],
-  "activationEvents": [
-    "onLanguage:fish"
-  ],
   "main": "./out/extension.js",
   "contributes": {
+    "title": "fish-lsp",
     "languages": [
       {
         "id": "fish",
-        "aliases": [
-          "Fish",
-          "fish"
-        ],
-        "extensions": [
-          ".fish"
-        ],
+        "aliases": [ "Fish", "fish" ],
+        "extensions": [ ".fish" ],
         "configuration": "./language-configuration.json"
       }
     ],
@@ -80,47 +73,58 @@
       "[fish]": {
         "editor.wordSeparators": "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?",
         "editor.tabSize": 4
-      }
-    }
-  },
-  "configuration": {
-    "type": "object",
-    "title": "Fish Language Server",
-    "properties": {
-      "fish-lsp.enable": {
-        "type": "boolean",
-        "default": true,
-        "description": "Enable/disable Fish language server"
       },
-      "fish-lsp.trace.server": {
-        "type": "string",
-        "enum": [
-          "off",
-          "messages",
-          "verbose"
-        ],
-        "default": "off",
-        "description": "Trace communication between VS Code and language server"
+      "fish-lsp": {
+        "enable": true,
+        "trace.server": "off",
+        "useGlobalExecutable": false,
+        "executablePath": ""
       }
     },
-    "commands": [
-      {
-        "command": "fish-lsp.restart",
-        "title": "Restart the fish-lsp"
+    "configuration": {
+      "title": "fish-lsp",
+      "properties": {
+        "fish-lsp.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable Fish language server"
+        },
+        "fish-lsp.trace.server": {
+          "type": "string",
+          "enum": [ "off", "messages", "verbose" ],
+          "default": "off",
+          "description": "Trace communication between VS Code and language server"
+        },
+        "fish-lsp.useGlobalExecutable": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use globally installed fish-lsp executable instead of the bundled version"
+        },
+        "fish-lsp.executablePath": {
+          "type": ["string", "null"],
+          "default": "",
+          "description": "Path to the `fish-lsp` executable, this will override the `fish-lsp.useGlobalExecutable` setting and the `fish-lsp` version installed with this extension"
+        }
       },
-      {
-        "command": "fish-lsp.env",
-        "title": "output `fish-lsp env --create`"
-      },
-      {
-        "command": "fish-lsp.info",
-        "title": "show `fish-lsp info`"
-      },
-      {
-        "command": "fish-lsp.generateCompletions",
-        "title": "Fish LSP: Generate Shell Completions"
-      }
-    ]
+      "commands": [
+        {
+          "command": "fish-lsp.restart",
+          "title": "Restart the fish-lsp"
+        },
+        {
+          "command": "fish-lsp.env",
+          "title": "output `fish-lsp env --create`"
+        },
+        {
+          "command": "fish-lsp.info",
+          "title": "show `fish-lsp info`"
+        },
+        {
+          "command": "fish-lsp.generateCompletions",
+          "title": "Fish LSP: Generate Shell Completions"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "run-s lint compile",
@@ -130,10 +134,9 @@
     "clean": "rimraf out yarn.lock package-lock.json node_modules",
     "clean:packs": "rimraf *.tgz *.vsix",
     "install:unlink": "yarn unlink fish-lsp 2>/dev/null || true && yarn add fish-lsp@latest",
-    "install:linked": "fish -c 'command -q fish-lsp' && yarn uninstall fish-lsp && yarn link fish-lsp"
+    "install:linked": "fish -c 'command -q fish-lsp' && yarn remove fish-lsp && yarn link fish-lsp"
   },
   "dependencies": {
-    "fish-lsp": "^1.0.8-4",
     "vscode-languageclient": "^8.1.0"
   },
   "devDependencies": {
