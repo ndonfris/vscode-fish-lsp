@@ -19,6 +19,22 @@ function extensionFishLspPath(context: ExtensionContext): string {
 }
 
 /**
+ * Use this for finding the path to the `fish-lsp`/`fish` executable
+ */
+export async function getCommandFilePath(...command: string[]): Promise<string | undefined> {
+  try {
+    const { stdout } = await execFileAsync(
+      process.platform === 'win32' ? 'where' : 'which',
+      command
+    );
+    return stdout.trim().split('\n').at(0);
+  } catch (err) {
+    console.error('Error finding command:', err);
+    return undefined;
+  }
+}
+
+/**
  * Get the path to the fish-lsp executable to use. By default, this will be the bundled version of fish-lsp.
  * The three possible configurations are listed below:
  *   - no configuration: use the bundled version of fish-lsp
@@ -36,16 +52,10 @@ export async function getServerPath(context: ExtensionContext, config: Workspace
     serverPath = executablePath;
     console.log('Using configured `fish-lsp.executablePath` at:', serverPath);
 
-  } else if (useGlobalExecutable) { 
+  } else if (useGlobalExecutable) {
     try {
       // Use 'which' on Unix/Linux/macOS or 'where' on Windows to find global executable
-      const { stdout } = await execFileAsync(
-        process.platform === 'win32' ? 'where' : 'which',
-        ['fish-lsp']
-      );
-
-      // Get the first line (first path) from the output
-      serverPath = stdout.trim().split('\n')[0];
+      serverPath = (await getCommandFilePath('fish-lsp')) || '';
       console.log('Using globally installed fish-lsp at:', serverPath);
     } catch (err) {
       console.log('Global fish-lsp not found, falling back to bundled version', err);
@@ -67,4 +77,3 @@ export async function getServerPath(context: ExtensionContext, config: Workspace
   }
   return serverPath;
 }
-

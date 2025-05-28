@@ -2,7 +2,7 @@
 set -ga --export fish_lsp_all_indexed_paths
 
 # @fish-lsp-disable
-function __test 'test function' -a var1 var2 var3
+function __test -d 'test function' -a var1 var2 var3
     echo '$argv: '$argv
     echo '$var1: '$var1
     echo '$var2: '$var2
@@ -11,3 +11,7 @@ function __test 'test function' -a var1 var2 var3
         echo a
     end
 end
+
+echo "$(
+    echo foo
+)"

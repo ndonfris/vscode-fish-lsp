@@ -1,0 +1,16 @@
+#!/usr/bin/env fish
+
+if not set -q OPEN_VSX_TOKEN
+    echo "OPEN_VSX_TOKEN is not set. Please set it before running this script." >&2
+    exit 1
+end
+
+if not set -q VSCE_TOKEN
+    echo "VSCE_TOKEN is not set. Please set it before running this script." >&2
+    exit 1
+end
+
+yarn install
+
+npx ovsx publish -p $OPEN_VSX_TOKEN --yarn
+npx vsce publish -p $VSCE_TOKEN --yarn

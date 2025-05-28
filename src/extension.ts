@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { workspace, ExtensionContext, window, commands } from 'vscode';
+import { workspace, ExtensionContext, window, commands, Uri, WorkspaceFolder } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -9,18 +9,20 @@ import {
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { homedir } from 'os';
-import { getServerPath } from './server';
+import { getCommandFilePath, getServerPath } from './server';
 
 const execFileAsync = promisify(execFile);
 
 let client: LanguageClient;
 
 export async function activate(context: ExtensionContext) {
-  
+
   // Check if user wants to use global executable
   const config = workspace.getConfiguration('fish-lsp');
   // Determine which fish-lsp executable to use
   const serverPath = await getServerPath(context, config);
+  // Determine the path to the fish executable
+  const fishPath = await getCommandFilePath('fish')
 
   // Server options - do not specify transport as fish-lsp handles stdio by default
   const serverOptions: ServerOptions = {
@@ -34,21 +36,32 @@ export async function activate(context: ExtensionContext) {
     }
   };
 
+  const workspaceFolder: WorkspaceFolder = {
+    name: 'Fish LSP',
+    index: 0,
+    uri: Uri.parse(process.cwd()),
+  }
+
   // Client options
   const clientOptions: LanguageClientOptions = {
-    documentSelector: [{ scheme: 'file', language: 'fish' }],
+    documentSelector: [{ scheme: 'file', language: 'fish', pattern: '**/*.fish' }],
     synchronize: {
       fileEvents: workspace.createFileSystemWatcher('**/*.fish')
     },
     outputChannel: window.createOutputChannel('fish-lsp'),
     traceOutputChannel: window.createOutputChannel('fish-lsp Trace'),
-    // workspaceFolder: {
-    //   uri: {
-    //     scheme
-    //   }
-    // }
-    markdown: {
-      isTrusted: true,
+    workspaceFolder,
+    initializationOptions: {
+      // Add any initialization options here
+      fishPath,
+      workspace: [
+        workspaceFolder,
+        ...workspace.workspaceFolders?.map(w => ({
+          name: w.name,
+          index: w.index,
+          uri: w.uri.toString(),
+        })).filter(w => w.uri !== workspaceFolder.uri.toString()) || [],
+      ],
     },
   };
 

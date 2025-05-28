@@ -24,10 +24,18 @@
         {
           "match": "(\\s*#)(\\s*@)(fish-lsp-(?:disable|enable)(?:-next-line)?)((?:\\s+[0-9\\s]*)?$)",
           "captures": {
-            "1": { "name": "comment.line.number-sign.fish" },
-            "2": { "name": "keyword.control.fish-lsp" },
-            "3": { "name": "comment.line.number-sign.fish" },
-            "4": { "name": "comment.line.number-sign.fish" }
+            "1": {
+              "name": "comment.line.number-sign.fish"
+            },
+            "2": {
+              "name": "keyword.control.fish-lsp"
+            },
+            "3": {
+              "name": "comment.line.number-sign.fish"
+            },
+            "4": {
+              "name": "comment.line.number-sign.fish"
+            }
           }
         },
         {
@@ -60,6 +68,38 @@
     },
     "variables": {
       "patterns": [
+        {
+          "name": "meta.embedded.command-substitution.fish",
+          "begin": "\\$\\(",
+          "end": "\\)",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.variable.begin.fish"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.variable.end.fish"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#comments"
+            },
+            {
+              "include": "#strings"
+            },
+            {
+              "include": "#variables"
+            },
+            {
+              "include": "#commands"
+            },
+            {
+              "include": "#operators"
+            }
+          ]
+        },
         {
           "match": "\\$\\w+",
           "name": "variable.other.fish"
