@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowUmdGlobalAccess": true,
+    "rootDir": ".",
+    "outDir": "./out",
+    "sourceRoot": "./src",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "downlevelIteration": true
+  },
+  "include": ["src/**/*.ts", "tests/**/*.ts"],
+}
+

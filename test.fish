@@ -12,6 +12,4 @@ function __test -d 'test function' -a var1 var2 var3
     end
 end
 
-echo "$(
-    echo foo
-)"
+fish_add_path 

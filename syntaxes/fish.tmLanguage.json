@@ -113,7 +113,7 @@
     "commands": {
       "patterns": [
         {
-          "match": "\\b(function|if|else|switch|case|while|for|in|begin|end|return|and|or|not|set|read|echo|command|builtin)\\b",
+          "match": "(?<=^|;|\\s)(function|if|else|switch|case|while|for|in|begin|end|return|and|or|not|set|read|echo|command|builtin)(?=\\s|$)",
           "name": "keyword.control.fish"
         },
         {

@@ -5,7 +5,7 @@
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}"
             ],
-            "name": "Launch Extension",
+            "name": "Run Extension",
             "outFiles": [
                 "${workspaceFolder}/out/**/*.js"
             ],
@@ -13,5 +13,21 @@
             "request": "launch",
             "type": "extensionHost"
         },
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Attach to Server",
+            "port": 6009,
+            "restart": true,
+            "outFiles": [
+                "${workspaceFolder}/out/**/*.js"
+            ]
+        }
+    ], 
+    "compounds": [
+        {
+            "name": "Extension + Server",
+            "configurations": ["Run Extension", "Attach to Server"]
+        }
     ]
 }
