@@ -55,11 +55,9 @@ export async function activate(context: ExtensionContext) {
   if (!currentFolder) {
     try {
       currentFolder = FishClientWorkspace.createFromPath(Uri.parse(process.cwd()).fsPath);
-      if (currentFolder) {
-        allFolders.unshift(currentFolder);
-      }
+      if (currentFolder) allFolders.unshift(currentFolder);
     } catch (error) {
-      msg.error(`Failed to create workspace from current directory: ${error}`);
+      console.error(`Failed to create workspace from current directory: ${error}`);
     }
   }
   // add all the workspace folders to the workspace object
@@ -187,7 +185,7 @@ export async function activate(context: ExtensionContext) {
   );
 
   client.setTrace(Trace.fromString(loggingVerbosity));
-  client.dispose();
+  // client.dispose();
 
   /**
    * Start the language client 
