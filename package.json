@@ -125,26 +125,30 @@
           ],
           "description": "List of workspace folders to use for the language server. If empty, the current workspace folder will be used."
         }
+      }
+    },
+    "commands": [
+      {
+        "command": "fish-lsp.restart",
+        "title": "Restart the fish-lsp"
       },
-      "commands": [
-        {
-          "command": "fish-lsp.restart",
-          "title": "Restart the fish-lsp"
-        },
-        {
-          "command": "fish-lsp.env",
-          "title": "output `fish-lsp env --create`"
-        },
-        {
-          "command": "fish-lsp.info",
-          "title": "show `fish-lsp info`"
-        },
-        {
-          "command": "fish-lsp.generateCompletions",
-          "title": "Fish LSP: Generate Shell Completions"
-        }
-      ]
-    }
+      {
+        "command": "fish-lsp.env",
+        "title": "output `fish-lsp env --create`"
+      },
+      {
+        "command": "fish-lsp.info",
+        "title": "show `fish-lsp info`"
+      },
+      {
+        "command": "fish-lsp.generateCompletions",
+        "title": "Fish LSP: Generate Shell Completions"
+      },
+      {
+        "command": "fish-lsp.evalSelection",
+        "title": "Fish LSP: Evaluate Selection"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "run-s lint compile",

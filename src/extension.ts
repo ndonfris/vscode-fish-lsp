@@ -37,7 +37,8 @@ function showMessage(_window: typeof window, loggingVerbosity: string) {
       _window.showInformationMessage(t);
     },
     error: (t: string) => {
-      console.error(t);
+      console.log(t);
+      if (loggingVerbosity === 'off') return;
       _window.showErrorMessage(t);
     }
   };
@@ -79,7 +80,7 @@ export async function activate(context: ExtensionContext) {
   if (!currentFolder) {
     try {
       currentFolder = FishClientWorkspace.createFromPath(Uri.parse(process.cwd()).fsPath);
-      if (!currentFolder) {
+      if (currentFolder) {
         allFolders.unshift(currentFolder);
       }
     } catch (error) {
@@ -252,6 +253,61 @@ export async function activate(context: ExtensionContext) {
       }
     })
   );
+
+  commands.registerCommand('fish-lsp.evalSelection', async () => {
+    const activeEditor = window.activeTextEditor;
+    if (!activeEditor) {
+      window.showWarningMessage('No active editor');
+      return;
+    }
+
+    const selection = activeEditor.selection;
+    let textToEval = activeEditor.document.getText(selection);
+
+    // If nothing is selected, use the current line
+    if (!textToEval.trim()) {
+      const currentLine = activeEditor.document.lineAt(activeEditor.selection.active.line);
+      textToEval = currentLine.text;
+    }
+
+    if (!textToEval.trim()) {
+      window.showWarningMessage('No code to evaluate');
+      return;
+    }
+
+    try {
+      const { stdout, stderr } = await execFileAsync(fishPath, ['-c', textToEval]);
+
+      const outputChannel = window.createOutputChannel('fish-lsp `eval` result');
+      outputChannel.clear();
+      outputChannel.appendLine(`> ${textToEval.replace(/\n/g, '\n> ')}`);
+      outputChannel.appendLine('---');
+
+      if (stdout) {
+        outputChannel.appendLine('STDOUT:');
+        outputChannel.append(stdout);
+      }
+
+      if (stderr) {
+        outputChannel.appendLine('STDERR:');
+        outputChannel.append(stderr);
+      }
+
+      if (!stdout && !stderr) {
+        outputChannel.appendLine('(No output)');
+      }
+
+      outputChannel.show();
+    } catch (error: any) {
+      const outputChannel = window.createOutputChannel('fish-lsp `eval` result');
+      outputChannel.clear();
+      outputChannel.appendLine(`> ${textToEval.replace(/\n/g, '\n> ')}`);
+      outputChannel.appendLine('---');
+      outputChannel.appendLine('ERROR:');
+      outputChannel.append(error.stderr || error.message || String(error));
+      outputChannel.show();
+    }
+  });
 
   try {
     msg.info('Starting language client...');
