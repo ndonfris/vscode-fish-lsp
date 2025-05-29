@@ -112,7 +112,6 @@ export namespace PathUtils {
     } catch (_) {
       return false;
     }
-
   }
 
   export function isFile(filepath: string): boolean {
