@@ -2,7 +2,7 @@
   "name": "fish-lsp",
   "displayName": "fish-lsp",
   "description": "fish shell language support via fish-lsp",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "license": "MIT",
   "publisher": "ndonfris",
   "author": {
@@ -45,7 +45,6 @@
     "language-server",
     "fish-shell"
   ],
-  "main": "./out/extension.js",
   "contributes": {
     "title": "fish-lsp",
     "languages": [

@@ -12,5 +12,5 @@ end
 
 yarn install
 
-yarn npx ovsx publish -p $OPEN_VSX_TOKEN --yarn
-yarn npx vsce publish -p $VSCE_TOKEN --yarn
+npx ovsx publish -p $OPEN_VSX_TOKEN --yarn
+npx vsce publish -p $VSCE_TOKEN --yarn
