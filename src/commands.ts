@@ -1,10 +1,10 @@
 import fs from 'fs';
 import { homedir } from 'os';
 import path from 'path';
-import * as vscode from 'vscode';
 import { commands, ExtensionContext, Uri, window, workspace } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
-import { execFileAsync, fishPath, ShowMessage } from './extension';
+import { execFileAsync, fishPath } from './extension';
+import { ShowMessage } from './utils';
 
 export function getFishLspCommands(context: ExtensionContext, client: LanguageClient, serverPath: string, msg: ShowMessage) {
   context.subscriptions.push(
@@ -104,13 +104,14 @@ export function getFishLspCommands(context: ExtensionContext, client: LanguageCl
         }
 
         outputChannel.show();
-      } catch (error: any) {
+      } catch (error: unknown) {
         const outputChannel = window.createOutputChannel('fish-lsp `eval` result');
         outputChannel.clear();
         outputChannel.appendLine(`> ${textToEval.replace(/\n/g, '\n> ')}`);
         outputChannel.appendLine('---');
         outputChannel.appendLine('ERROR:');
-        outputChannel.append(error.stderr || error.message || String(error));
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        outputChannel.append(errorMessage);
         outputChannel.show();
       }
     }),
@@ -158,13 +159,14 @@ export function getFishLspCommands(context: ExtensionContext, client: LanguageCl
         }
 
         outputChannel.show();
-      } catch (error: any) {
+      } catch (error: unknown) {
         const outputChannel = window.createOutputChannel('fish-lsp `eval` result');
         outputChannel.clear();
         outputChannel.appendLine(`Evaluating file: ${activeEditor.document.fileName}`);
         outputChannel.appendLine('---');
         outputChannel.appendLine('ERROR:');
-        outputChannel.append(error.stderr || error.message || String(error));
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        outputChannel.append(errorMessage);
         outputChannel.show();
       }
     }),
@@ -213,12 +215,13 @@ export function getFishLspCommands(context: ExtensionContext, client: LanguageCl
         }
 
         outputChannel.show();
-      } catch (error: any) {
+      } catch (error: unknown) {
         const outputChannel = window.createOutputChannel('fish-lsp info --check-health');
         outputChannel.clear();
         outputChannel.appendLine('ERROR: `fish-lsp info --check-health`');
         outputChannel.appendLine('---');
-        outputChannel.append(error.stderr || error.message || String(error));
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        outputChannel.append(errorMessage);
         outputChannel.show();
       }
     }),
@@ -281,7 +284,7 @@ export function getFishLspCommands(context: ExtensionContext, client: LanguageCl
           // outputChannel.appendLine('='.repeat(50));
           // outputChannel.append(fishHelp);
           // outputChannel.show();
-        } catch (fishError) {
+        } catch (_) {
           // window.showErrorMessage(`No manual page or fish help found for '${command}'`);
           msg.error(`No manual page or fish help found for '${command}'`, { override: true });
         }
