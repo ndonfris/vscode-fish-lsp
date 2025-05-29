@@ -146,7 +146,98 @@
       },
       {
         "command": "fish-lsp.evalSelection",
-        "title": "Fish LSP: Evaluate Selection"
+        "title": "Fish LSP: Evaluate Selection or Current Line"
+      },
+      {
+        "command": "fish-lsp.evalFile",
+        "title": "Fish LSP: Evaluate Entire File"
+      },
+      {
+        "command": "fish-lsp.showLogFile",
+        "title": "Fish LSP: Show Log File"
+      },
+      {
+        "command": "fish-lsp.showCheckHealth",
+        "title": "Fish LSP: Show Health Status"
+      },
+      {
+        "command": "fish-lsp.showCommandHelp",
+        "title": "Fish LSP: Show `man page/help info` for command"
+      },
+      {
+        "command": "fish-lsp.quickfix.all",
+        "title": "Fish LSP: fix all quickfix diagnostics in file"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "fish-lsp.evalSelection",
+          "when": "editorLangId == fish",
+          "group": "fish-lsp@1"
+        },
+        {
+          "command": "fish-lsp.evalFile",
+          "when": "editorLangId == fish",
+          "group": "fish-lsp@2"
+        },
+        {
+          "command": "fish-lsp.showLogFile",
+          "when": "editorLangId == fish",
+          "group": "fish-lsp@3"
+        },
+        {
+          "command": "fish-lsp.showCheckHealth",
+          "when": "editorLangId == fish",
+          "group": "fish-lsp@4"
+        },
+        {
+          "command": "fish-lsp.showCommandHelp",
+          "when": "editorLangId == fish",
+          "group": "fish-lsp@5"
+        },
+        {
+          "command": "fish-lsp.quickfix.all",
+          "when": "editorLangId == fish && editorHasCodeActionsProvider && editorHasDocumentFormattingProvider",
+          "group": "fish-lsp@6"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "fish-lsp.evalSelection",
+        "key": "ctrl+shift+1",
+        "when": "editorTextFocus && editorLangId == fish"
+      },
+      {
+        "command": "fish-lsp.evalFile",
+        "key": "ctrl+shift+2",
+        "when": "editorTextFocus && editorLangId == fish"
+      },
+      {
+        "command": "fish-lsp.showLogFile",
+        "key": "ctrl+shift+3",
+        "when": "editorTextFocus && editorLangId == fish"
+      },
+      {
+        "command": "fish-lsp.showCheckHealth",
+        "key": "ctrl+shift+4",
+        "when": "editorTextFocus && editorLangId == fish"
+      },
+      {
+        "command": "fish-lsp.showCommandHelp",
+        "key": "ctrl+shift+5",
+        "when": "editorTextFocus && editorLangId == fish"
+      },
+      {
+        "command": "vscode.executeWorkspaceSymbolProvider",
+        "key": "ctrl+shift+6",
+        "when": "editorTextFocus && editorLangId == fish"
+      },
+      {
+        "command": "fish-lsp.quickfix.all",
+        "key": "ctrl+shift+.",
+        "when": "editorTextFocus && editorLangId == fish && editorHasCodeActionsProvider && editorHasDocumentFormattingProvider"
       }
     ]
   },
