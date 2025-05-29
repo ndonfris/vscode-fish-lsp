@@ -18,11 +18,12 @@ import { promisify } from 'util';
 import { homedir } from 'os';
 import { getCommandFilePath, getServerPath } from './server';
 import { FishClientWorkspace } from './workspace';
+import { getFishLspCommands } from './commands';
 
-const execFileAsync = promisify(execFile);
+export const execFileAsync = promisify(execFile);
 
 export let fishPath: string = 'fish'; // Default fish path
-let client: LanguageClient;
+export let client: LanguageClient;
 
 const workspaceShortHand = (folder: WorkspaceFolder): {
   uri: string;
@@ -38,7 +39,7 @@ type MessageOpts = {
   override: boolean;
   modal: boolean;
 };
-function showMessage(_window: typeof window, loggingVerbosity: string) {
+export function showMessage(_window: typeof window, loggingVerbosity: string) {
   const defaultOpts: MessageOpts = {
     override: false,
     modal: false
@@ -64,6 +65,7 @@ function showMessage(_window: typeof window, loggingVerbosity: string) {
     }
   };
 }
+export type ShowMessage = ReturnType<typeof showMessage>;
 
 export async function activate(context: ExtensionContext) {
   // Check if user wants to use global executable
@@ -223,385 +225,327 @@ export async function activate(context: ExtensionContext) {
   );
 
   // Register commands
-  context.subscriptions.push(
-    commands.registerCommand('fish-lsp.restart', async () => {
-      if (client) {
-        await client.stop();
-        await client.start();
-        msg.info('Fish LSP has been restarted');
-      }
-    }),
-
-    commands.registerCommand('fish-lsp.env', async () => {
-      try {
-        const { stdout } = await execFileAsync(serverPath, ['env', '--create']);
-        const outputChannel = window.createOutputChannel('Fish LSP Environment');
-        outputChannel.clear();
-        outputChannel.append(stdout);
-        outputChannel.show();
-      } catch (error) {
-        msg.error(`Failed to get fish-lsp environment: ${error}`);
-      }
-    }),
-
-    commands.registerCommand('fish-lsp.info', async () => {
-      try {
-        const { stdout } = await execFileAsync(serverPath, ['info']);
-        const outputChannel = window.createOutputChannel('Fish LSP Info');
-        outputChannel.clear();
-        outputChannel.append(stdout);
-        outputChannel.show();
-      } catch (error) {
-        msg.error(`Failed to get fish-lsp info: ${error}`);
-      }
-    }),
-
-    commands.registerCommand('fish-lsp.generateCompletions', async () => {
-      try {
-        const configPath = path.join(homedir(), '.config', 'fish', 'completions');
-        // Ensure completions directory exists
-        await fs.promises.mkdir(configPath, { recursive: true });
-        const completionsFile = path.join(configPath, 'fish-lsp.fish');
-        // Generate completions
-        const { stdout } = await execFileAsync(serverPath, ['complete']);
-        // Write completions to file
-        await fs.promises.writeFile(completionsFile, stdout);
-        msg.info(
-          `Fish LSP completions generated at ${completionsFile}`
-        );
-      } catch (error) {
-        msg.error(
-          `Failed to generate fish-lsp completions: ${error}`
-        );
-      }
-    }),
-
-    commands.registerCommand('fish-lsp.evalSelection', async () => {
-      const activeEditor = window.activeTextEditor;
-      if (!activeEditor) {
-        window.showWarningMessage('No active editor');
-        return;
-      }
-
-      const selection = activeEditor.selection;
-      let textToEval = activeEditor.document.getText(selection);
-
-      // If nothing is selected, use the current line
-      if (!textToEval.trim()) {
-        const currentLine = activeEditor.document.lineAt(activeEditor.selection.active.line);
-        textToEval = currentLine.text;
-      }
-
-      if (!textToEval.trim()) {
-        window.showWarningMessage('No code to evaluate');
-        return;
-      }
-
-      try {
-        const { stdout, stderr } = await execFileAsync(fishPath, ['-c', textToEval]);
-
-        const outputChannel = window.createOutputChannel('fish-lsp `eval` result');
-        outputChannel.clear();
-        outputChannel.appendLine(`> ${textToEval.replace(/\n/g, '\n> ')}`);
-        outputChannel.appendLine('---');
-
-        if (stdout) {
-          outputChannel.appendLine('STDOUT:');
-          outputChannel.append(stdout);
-        }
-
-        if (stderr) {
-          outputChannel.appendLine('STDERR:');
-          outputChannel.append(stderr);
-        }
-
-        if (!stdout && !stderr) {
-          outputChannel.appendLine('(No output)');
-        }
-
-        outputChannel.show();
-      } catch (error: any) {
-        const outputChannel = window.createOutputChannel('fish-lsp `eval` result');
-        outputChannel.clear();
-        outputChannel.appendLine(`> ${textToEval.replace(/\n/g, '\n> ')}`);
-        outputChannel.appendLine('---');
-        outputChannel.appendLine('ERROR:');
-        outputChannel.append(error.stderr || error.message || String(error));
-        outputChannel.show();
-      }
-    }),
-
-
-    commands.registerCommand('fish-lsp.evalFile', async () => {
-      const activeEditor = window.activeTextEditor;
-      if (!activeEditor) {
-        window.showWarningMessage('No active editor');
-        return;
-      }
-
-      if (activeEditor.document.languageId !== 'fish') {
-        window.showWarningMessage('Current file is not a fish script');
-        return;
-      }
-
-      const fileContent = activeEditor.document.getText();
-
-      if (!fileContent.trim()) {
-        window.showWarningMessage('File is empty');
-        return;
-      }
-
-      try {
-        const { stdout, stderr } = await execFileAsync(fishPath, ['-c', fileContent]);
-
-        const outputChannel = window.createOutputChannel('fish-lsp `eval` result');
-        outputChannel.clear();
-        outputChannel.appendLine(`Evaluating file: ${activeEditor.document.fileName}`);
-        outputChannel.appendLine('---');
-
-        if (stdout) {
-          outputChannel.appendLine('STDOUT:');
-          outputChannel.append(stdout);
-        }
-
-        if (stderr) {
-          outputChannel.appendLine('STDERR:');
-          outputChannel.append(stderr);
-        }
-
-        if (!stdout && !stderr) {
-          outputChannel.appendLine('(No output)');
-        }
-
-        outputChannel.show();
-      } catch (error: any) {
-        const outputChannel = window.createOutputChannel('fish-lsp `eval` result');
-        outputChannel.clear();
-        outputChannel.appendLine(`Evaluating file: ${activeEditor.document.fileName}`);
-        outputChannel.appendLine('---');
-        outputChannel.appendLine('ERROR:');
-        outputChannel.append(error.stderr || error.message || String(error));
-        outputChannel.show();
-      }
-    }),
-
-    commands.registerCommand('fish-lsp.showLogFile', async () => {
-      try {
-        // Get the log file path
-        const { stdout } = await execFileAsync(serverPath, ['info', '--log-file']);
-        const logFilePath = stdout.trim();
-
-        if (!logFilePath) {
-          msg.info('No log file path returned. Make sure fish_lsp_log_file is set.');
-          return;
-        }
-
-        // Open the log file directly in VS Code
-        const logUri = Uri.parse(logFilePath);
-        const doc = await workspace.openTextDocument(logUri);
-        await window.showTextDocument(doc);
-
-        msg.info(`Opened log file: ${logFilePath}. Use Ctrl+End to go to bottom.`);
-      } catch (error) {
-        msg.error(`Failed to open fish-lsp log file: ${error}`);
-      }
-    }),
-
-    commands.registerCommand('fish-lsp.showCheckHealth', async () => {
-      const activeEditor = window.activeTextEditor;
-      if (!activeEditor) {
-        msg.info('No active editor', { override: true });
-        return;
-      }
-
-      try {
-        const { stdout, stderr } = await execFileAsync(serverPath, ['info', '--check-health']);
-
-        const outputChannel = window.createOutputChannel('fish-lsp info --check-health');
-        outputChannel.clear();
-
-        if (stdout) {
-          outputChannel.append(stdout);
-        }
-
-        if (!stdout && !stderr) {
-          outputChannel.appendLine('(No output)');
-        }
-
-        outputChannel.show();
-      } catch (error: any) {
-        const outputChannel = window.createOutputChannel('fish-lsp info --check-health');
-        outputChannel.clear();
-        outputChannel.appendLine('ERROR: `fish-lsp info --check-health`');
-        outputChannel.appendLine('---');
-        outputChannel.append(error.stderr || error.message || String(error));
-        outputChannel.show();
-      }
-    }),
-
-    commands.registerCommand('fish-lsp.showCommandHelp', async () => {
-      const activeEditor = window.activeTextEditor;
-      if (!activeEditor) {
-        msg.info('No active editor', { override: true });
-        return;
-      }
-
-      const document = activeEditor.document;
-      const position = activeEditor.selection.active;
-
-      // Get the word under cursor
-      const wordRange = document.getWordRangeAtPosition(position);
-      if (!wordRange) {
-        msg.info('No active editor', { override: true });
-        return;
-      }
-
-      const command = document.getText(wordRange);
-      if (!command.trim()) {
-        msg.info('No active editor', { override: true });
-        return;
-      }
-
-      try {
-        // Try to get the man page
-        const { stdout, stderr } = await execFileAsync(fishPath, ['-c', `man -K ${command} | command cat`]);
-
-        // const outputChannel = window.createOutputChannel(`Man Page: ${command}`);
-        // outputChannel.clear();
-        // outputChannel.appendLine(`Manual page for: ${command}`);
-        // outputChannel.appendLine('='.repeat(50));
-        // outputChannel.append(stdout);
-        // outputChannel.show();
-        if (stdout.toString().trim() !== '' && !stderr.toString().trim()) {
-          await fs.promises.writeFile(`/tmp/fish-lsp/man/${command}.1`, stdout.toString().trim());
-          const doc = await workspace.openTextDocument(Uri.file(`/tmp/fish-lsp/man/${command}.1`));
-          await window.showTextDocument(doc);
-          msg.info(`Fish help for '${command}' displayed`, { override: true });
-        }
-      } catch (_) {
-        // If man page doesn't exist, try fish's help
-        try {
-          const { stdout: fishHelp } = await execFileAsync(fishPath, ['-c', `help ${command}`]);
-          if (fishHelp.toString().trim() === '' || !fishHelp) {
-            msg.info(`No help found for '${command}'`, { override: true });
-            return;
-          }
-          await fs.promises.writeFile(`/tmp/fish-lsp/man/${command}.1`, fishHelp);
-          const doc = await workspace.openTextDocument(Uri.file(`/tmp/fish-lsp/man/${command}.1`));
-          await window.showTextDocument(doc);
-          msg.info(`Fish help for '${command}' displayed`, { override: true });
-
-          // const outputChannel = window.createOutputChannel(`Fish Help: ${ command; } `);
-          // outputChannel.clear();
-          // outputChannel.appendLine(`Fish help for: ${ command; } `);
-          // outputChannel.appendLine('='.repeat(50));
-          // outputChannel.append(fishHelp);
-          // outputChannel.show();
-        } catch (fishError) {
-          // window.showErrorMessage(`No manual page or fish help found for '${command}'`);
-          msg.error(`No manual page or fish help found for '${command}'`, { override: true });
-        }
-      }
-    }),
-
-    commands.registerCommand('fish-lsp.quickfix.all', async () => {
-      const activeEditor = window.activeTextEditor;
-      if (!activeEditor) {
-        window.showWarningMessage('No active editor');
-        return;
-      }
-
-      if (activeEditor.document.languageId !== 'fish') {
-        window.showWarningMessage('Current file is not a fish script');
-        return;
-      }
-
-      const filePath = activeEditor.document.uri.fsPath;
-
-      try {
-        return await commands.executeCommand('fish-lsp.fixAll', filePath);
-      } catch (error) {
-        msg.error(`Failed to run fix-all: ${error}`);
-      }
-      return undefined;
-    }),
-
-    commands.registerCommand('fish-lsp.impl', async () => {
-      const activeEditor = window.activeTextEditor;
-      if (!activeEditor) {
-        window.showWarningMessage('No active editor');
-        return;
-      }
-
-      const position = activeEditor.selection.active;
-      const uri = activeEditor.document.uri.path;;
-
-
-      return await vscode.commands.executeCommand('vscode.executeImplementationProvider',
-        Uri.parse(uri),
-        position,
-      );
-
-      // try {
-      //   const result = await client.sendRequest(ImplementationRequest.type, {
-      //     textDocument: { uri: uri.toString() },
-      //     position: { line: position.line, character: position.character }
-      //   });
-      //
-      //   if (!result || (result && Array.isArray(result) && result?.length === 0)) {
-      //     msg.info('No implementations found');
-      //     return;
-      //   }
-      //
-      //   if (Array.isArray(result)) {
-      //     const newDoc = result?.at(0);
-      //     if (Location.is(newDoc)) {
-      //       const docUri = newDoc.uri;
-      //       const doc = await workspace.openTextDocument(docUri);
-      //       await window.showTextDocument(doc);
-      //     }
-      //   }
-      //   // Open the first implementation found
-      // } catch (error) {
-      //   msg.error(`Failed to execute go to implementation: ${error}`);
-      // }
-    }),
-    // Go to implementation command
-    // commands.registerCommand('fish-lsp.goToImplementation', async () => {
-    //   const activeEditor = window.activeTextEditor;
-    //   if (!activeEditor) {
-    //     window.showWarningMessage('No active editor');
-    //     return;
-    //   }
-    //   try {
-    //     // await commands.executeCommand('vscode.executeImplementationProvider', uri, position);
-    //     const result: { uri: string, [o: string]: any; }[] = await commands.executeCommand(
-    //       'vscode.executeImplementationProvider',
-    //       activeEditor.document.uri,
-    //       activeEditor.selection.active
-    //     );
-    //     if (!result || result.length === 0) {
-    //       msg.info('No implementations found');
-    //       return;
-    //     }
-    //     const doc = await workspace.openTextDocument(Uri.parse(result[0].uri), {
-    //       encoding: 'utf8',
-    //     });
-    //     if (!doc) {
-    //       msg.error('No document found for implementation');
-    //       return;
-    //     }
-    //     await client.sendRequest('textDocument/implementation', async () => {
-    //       await commands.executeCommand('vscode.open', doc);
-    //       await workspace.openTextDocument(doc.uri);
-    //     });
-    //   } catch (error) {
-    //     msg.error(`Failed to execute go to implementation: ${error}`);
-    //   }
-    //   return undefined;
-    // });
-    // })
-  );
+  // context.subscriptions.push(
+  //   commands.registerCommand('fish-lsp.restart', async () => {
+  //     if (client) {
+  //       await client.stop();
+  //       await client.start();
+  //       msg.info('Fish LSP has been restarted');
+  //     }
+  //   }),
+  //
+  //   commands.registerCommand('fish-lsp.env', async () => {
+  //     try {
+  //       const { stdout } = await execFileAsync(serverPath, ['env', '--create']);
+  //       const outputChannel = window.createOutputChannel('Fish LSP Environment');
+  //       outputChannel.clear();
+  //       outputChannel.append(stdout);
+  //       outputChannel.show();
+  //     } catch (error) {
+  //       msg.error(`Failed to get fish-lsp environment: ${error}`);
+  //     }
+  //   }),
+  //
+  //   commands.registerCommand('fish-lsp.info', async () => {
+  //     try {
+  //       const { stdout } = await execFileAsync(serverPath, ['info']);
+  //       const outputChannel = window.createOutputChannel('Fish LSP Info');
+  //       outputChannel.clear();
+  //       outputChannel.append(stdout);
+  //       outputChannel.show();
+  //     } catch (error) {
+  //       msg.error(`Failed to get fish-lsp info: ${error}`);
+  //     }
+  //   }),
+  //
+  //   commands.registerCommand('fish-lsp.generateCompletions', async () => {
+  //     try {
+  //       const configPath = path.join(homedir(), '.config', 'fish', 'completions');
+  //       // Ensure completions directory exists
+  //       await fs.promises.mkdir(configPath, { recursive: true });
+  //       const completionsFile = path.join(configPath, 'fish-lsp.fish');
+  //       // Generate completions
+  //       const { stdout } = await execFileAsync(serverPath, ['complete']);
+  //       // Write completions to file
+  //       await fs.promises.writeFile(completionsFile, stdout);
+  //       msg.info(
+  //         `Fish LSP completions generated at ${completionsFile}`
+  //       );
+  //     } catch (error) {
+  //       msg.error(
+  //         `Failed to generate fish-lsp completions: ${error}`
+  //       );
+  //     }
+  //   }),
+  //
+  //   commands.registerCommand('fish-lsp.evalSelection', async () => {
+  //     const activeEditor = window.activeTextEditor;
+  //     if (!activeEditor) {
+  //       window.showWarningMessage('No active editor');
+  //       return;
+  //     }
+  //
+  //     const selection = activeEditor.selection;
+  //     let textToEval = activeEditor.document.getText(selection);
+  //
+  //     // If nothing is selected, use the current line
+  //     if (!textToEval.trim()) {
+  //       const currentLine = activeEditor.document.lineAt(activeEditor.selection.active.line);
+  //       textToEval = currentLine.text;
+  //     }
+  //
+  //     if (!textToEval.trim()) {
+  //       window.showWarningMessage('No code to evaluate');
+  //       return;
+  //     }
+  //
+  //     try {
+  //       const { stdout, stderr } = await execFileAsync(fishPath, ['-c', textToEval]);
+  //
+  //       const outputChannel = window.createOutputChannel('fish-lsp `eval` result');
+  //       outputChannel.clear();
+  //       outputChannel.appendLine(`> ${textToEval.replace(/\n/g, '\n> ')}`);
+  //       outputChannel.appendLine('---');
+  //
+  //       if (stdout) {
+  //         outputChannel.appendLine('STDOUT:');
+  //         outputChannel.append(stdout);
+  //       }
+  //
+  //       if (stderr) {
+  //         outputChannel.appendLine('STDERR:');
+  //         outputChannel.append(stderr);
+  //       }
+  //
+  //       if (!stdout && !stderr) {
+  //         outputChannel.appendLine('(No output)');
+  //       }
+  //
+  //       outputChannel.show();
+  //     } catch (error: any) {
+  //       const outputChannel = window.createOutputChannel('fish-lsp `eval` result');
+  //       outputChannel.clear();
+  //       outputChannel.appendLine(`> ${textToEval.replace(/\n/g, '\n> ')}`);
+  //       outputChannel.appendLine('---');
+  //       outputChannel.appendLine('ERROR:');
+  //       outputChannel.append(error.stderr || error.message || String(error));
+  //       outputChannel.show();
+  //     }
+  //   }),
+  //
+  //
+  //   commands.registerCommand('fish-lsp.evalFile', async () => {
+  //     const activeEditor = window.activeTextEditor;
+  //     if (!activeEditor) {
+  //       window.showWarningMessage('No active editor');
+  //       return;
+  //     }
+  //
+  //     if (activeEditor.document.languageId !== 'fish') {
+  //       window.showWarningMessage('Current file is not a fish script');
+  //       return;
+  //     }
+  //
+  //     const fileContent = activeEditor.document.getText();
+  //
+  //     if (!fileContent.trim()) {
+  //       window.showWarningMessage('File is empty');
+  //       return;
+  //     }
+  //
+  //     try {
+  //       const { stdout, stderr } = await execFileAsync(fishPath, ['-c', fileContent]);
+  //
+  //       const outputChannel = window.createOutputChannel('fish-lsp `eval` result');
+  //       outputChannel.clear();
+  //       outputChannel.appendLine(`Evaluating file: ${activeEditor.document.fileName}`);
+  //       outputChannel.appendLine('---');
+  //
+  //       if (stdout) {
+  //         outputChannel.appendLine('STDOUT:');
+  //         outputChannel.append(stdout);
+  //       }
+  //
+  //       if (stderr) {
+  //         outputChannel.appendLine('STDERR:');
+  //         outputChannel.append(stderr);
+  //       }
+  //
+  //       if (!stdout && !stderr) {
+  //         outputChannel.appendLine('(No output)');
+  //       }
+  //
+  //       outputChannel.show();
+  //     } catch (error: any) {
+  //       const outputChannel = window.createOutputChannel('fish-lsp `eval` result');
+  //       outputChannel.clear();
+  //       outputChannel.appendLine(`Evaluating file: ${activeEditor.document.fileName}`);
+  //       outputChannel.appendLine('---');
+  //       outputChannel.appendLine('ERROR:');
+  //       outputChannel.append(error.stderr || error.message || String(error));
+  //       outputChannel.show();
+  //     }
+  //   }),
+  //
+  //   commands.registerCommand('fish-lsp.showLogFile', async () => {
+  //     try {
+  //       // Get the log file path
+  //       const { stdout } = await execFileAsync(serverPath, ['info', '--log-file']);
+  //       const logFilePath = stdout.trim();
+  //
+  //       if (!logFilePath) {
+  //         msg.info('No log file path returned. Make sure fish_lsp_log_file is set.');
+  //         return;
+  //       }
+  //
+  //       // Open the log file directly in VS Code
+  //       const logUri = Uri.parse(logFilePath);
+  //       const doc = await workspace.openTextDocument(logUri);
+  //       await window.showTextDocument(doc);
+  //
+  //       msg.info(`Opened log file: ${logFilePath}. Use Ctrl+End to go to bottom.`);
+  //     } catch (error) {
+  //       msg.error(`Failed to open fish-lsp log file: ${error}`);
+  //     }
+  //   }),
+  //
+  //   commands.registerCommand('fish-lsp.showCheckHealth', async () => {
+  //     const activeEditor = window.activeTextEditor;
+  //     if (!activeEditor) {
+  //       msg.info('No active editor', { override: true });
+  //       return;
+  //     }
+  //
+  //     try {
+  //       const { stdout, stderr } = await execFileAsync(serverPath, ['info', '--check-health']);
+  //
+  //       const outputChannel = window.createOutputChannel('fish-lsp info --check-health');
+  //       outputChannel.clear();
+  //
+  //       if (stdout) {
+  //         outputChannel.append(stdout);
+  //       }
+  //
+  //       if (!stdout && !stderr) {
+  //         outputChannel.appendLine('(No output)');
+  //       }
+  //
+  //       outputChannel.show();
+  //     } catch (error: any) {
+  //       const outputChannel = window.createOutputChannel('fish-lsp info --check-health');
+  //       outputChannel.clear();
+  //       outputChannel.appendLine('ERROR: `fish-lsp info --check-health`');
+  //       outputChannel.appendLine('---');
+  //       outputChannel.append(error.stderr || error.message || String(error));
+  //       outputChannel.show();
+  //     }
+  //   }),
+  //
+  //   commands.registerCommand('fish-lsp.showCommandHelp', async () => {
+  //     const activeEditor = window.activeTextEditor;
+  //     if (!activeEditor) {
+  //       msg.info('No active editor', { override: true });
+  //       return;
+  //     }
+  //
+  //     const document = activeEditor.document;
+  //     const position = activeEditor.selection.active;
+  //
+  //     // Get the word under cursor
+  //     const wordRange = document.getWordRangeAtPosition(position);
+  //     if (!wordRange) {
+  //       msg.info('No active editor', { override: true });
+  //       return;
+  //     }
+  //
+  //     const command = document.getText(wordRange);
+  //     if (!command.trim()) {
+  //       msg.info('No active editor', { override: true });
+  //       return;
+  //     }
+  //
+  //     try {
+  //       // Try to get the man page
+  //       const { stdout, stderr } = await execFileAsync(fishPath, ['-c', `man -K ${command} | command cat`]);
+  //
+  //       // const outputChannel = window.createOutputChannel(`Man Page: ${command}`);
+  //       // outputChannel.clear();
+  //       // outputChannel.appendLine(`Manual page for: ${command}`);
+  //       // outputChannel.appendLine('='.repeat(50));
+  //       // outputChannel.append(stdout);
+  //       // outputChannel.show();
+  //       if (stdout.toString().trim() !== '' && !stderr.toString().trim()) {
+  //         await fs.promises.writeFile(`/tmp/fish-lsp/man/${command}.1`, stdout.toString().trim());
+  //         const doc = await workspace.openTextDocument(Uri.file(`/tmp/fish-lsp/man/${command}.1`));
+  //         await window.showTextDocument(doc);
+  //         msg.info(`Fish help for '${command}' displayed`, { override: true });
+  //       }
+  //     } catch (_) {
+  //       // If man page doesn't exist, try fish's help
+  //       try {
+  //         const { stdout: fishHelp } = await execFileAsync(fishPath, ['-c', `help ${command}`]);
+  //         if (fishHelp.toString().trim() === '' || !fishHelp) {
+  //           msg.info(`No help found for '${command}'`, { override: true });
+  //           return;
+  //         }
+  //         await fs.promises.writeFile(`/tmp/fish-lsp/man/${command}.1`, fishHelp);
+  //         const doc = await workspace.openTextDocument(Uri.file(`/tmp/fish-lsp/man/${command}.1`));
+  //         await window.showTextDocument(doc);
+  //         msg.info(`Fish help for '${command}' displayed`, { override: true });
+  //
+  //         // const outputChannel = window.createOutputChannel(`Fish Help: ${ command; } `);
+  //         // outputChannel.clear();
+  //         // outputChannel.appendLine(`Fish help for: ${ command; } `);
+  //         // outputChannel.appendLine('='.repeat(50));
+  //         // outputChannel.append(fishHelp);
+  //         // outputChannel.show();
+  //       } catch (fishError) {
+  //         // window.showErrorMessage(`No manual page or fish help found for '${command}'`);
+  //         msg.error(`No manual page or fish help found for '${command}'`, { override: true });
+  //       }
+  //     }
+  //   }),
+  //
+  //   commands.registerCommand('fish-lsp.quickfix.all', async () => {
+  //     const activeEditor = window.activeTextEditor;
+  //     if (!activeEditor) {
+  //       window.showWarningMessage('No active editor');
+  //       return;
+  //     }
+  //
+  //     if (activeEditor.document.languageId !== 'fish') {
+  //       window.showWarningMessage('Current file is not a fish script');
+  //       return;
+  //     }
+  //
+  //     const filePath = activeEditor.document.uri.fsPath;
+  //
+  //     try {
+  //       return await commands.executeCommand('fish-lsp.fixAll', filePath);
+  //     } catch (error) {
+  //       msg.error(`Failed to run fix-all: ${error}`);
+  //     }
+  //     return undefined;
+  //   }),
+  //
+  //   commands.registerCommand('fish-lsp.impl', async () => {
+  //     const activeEditor = window.activeTextEditor;
+  //     if (!activeEditor) {
+  //       window.showWarningMessage('No active editor');
+  //       return;
+  //     }
+  //
+  //     const position = activeEditor.selection.active;
+  //     const uri = activeEditor.document.uri.path;;
+  //
+  //
+  //     return await vscode.commands.executeCommand('vscode.executeImplementationProvider',
+  //       Uri.parse(uri),
+  //       position,
+  //     );
+  //   }),
+  // );
+  getFishLspCommands(context, client, serverPath, msg)
 
 
   try {
