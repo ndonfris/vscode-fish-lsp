@@ -1,3 +1,5 @@
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 import {
   window,
   WorkspaceFolder
@@ -48,4 +50,4 @@ export const workspaceShortHand = (folder: WorkspaceFolder): {
   };
 };
                                                     
-
+export const execFileAsync = promisify(execFile);

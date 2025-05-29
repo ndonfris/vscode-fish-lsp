@@ -1,14 +1,10 @@
 import * as fs from 'fs';
 import { workspace, ExtensionContext, window, Uri, WorkspaceFolder } from 'vscode';
 import { DidChangeWorkspaceFoldersNotification, DidOpenTextDocumentNotification, LanguageClient, LanguageClientOptions, ServerOptions, Trace } from 'vscode-languageclient/node';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
 import { getCommandFilePath, getServerPath } from './server';
 import { FishClientWorkspace } from './workspace';
-import { getFishLspCommands } from './commands';
-import { showMessage, workspaceShortHand } from './utils';
-
-export const execFileAsync = promisify(execFile);
+import { setFishLspCommands } from './commands';
+import { execFileAsync, showMessage, workspaceShortHand } from './utils';
 
 export let fishPath: string = 'fish'; // Default fish path
 export let client: LanguageClient;
@@ -21,9 +17,15 @@ export async function activate(context: ExtensionContext) {
   // Determine the path to the fish executable
   fishPath = await getCommandFilePath('fish') || `fish`;
 
+  /**
+   * Set up the logging verbosity && message handler
+   */
   const loggingVerbosity: 'off' | 'messages' | 'verbose' = config.get('trace.server', 'off');
   const msg = showMessage(window, loggingVerbosity);
 
+  /**
+   * Build initial folders
+   */
   const defaultWorkspaces = config.get('workspaces', []);
   const defaultFolders = await Promise.all(defaultWorkspaces.map(async (val, idx) => {
     const path = await execFileAsync(fishPath, ['-c', `echo ${val}`]);
@@ -42,9 +44,13 @@ export async function activate(context: ExtensionContext) {
     }
     return undefined;
   }).filter(ws => ws !== undefined) as Promise<WorkspaceFolder>[]);
-
+  /**
+   * Create an array of all the workspace folders
+   */
   const allFolders = defaultFolders.map(folder => FishClientWorkspace.fromFolder(folder));
-
+  /**
+   * Add the current processes working directory as a workspace folder if it is not already included
+   */
   let currentFolder = allFolders.find(ws => ws.contains(process.cwd())) || allFolders.find(ws => ws.contains(Uri.file(process.cwd()).fsPath));
   if (!currentFolder) {
     try {
@@ -56,7 +62,7 @@ export async function activate(context: ExtensionContext) {
       msg.error(`Failed to create workspace from current directory: ${error}`);
     }
   }
-
+  // add all the workspace folders to the workspace object
   workspace.updateWorkspaceFolders(0, 0, ...allFolders.map(w => w.toWorkspaceFolder()));
 
   // Server options - do not specify transport as fish-lsp handles stdio by default
@@ -74,7 +80,6 @@ export async function activate(context: ExtensionContext) {
   // Client options
   const clientOptions: LanguageClientOptions = {
     documentSelector: [
-      // { scheme: 'file', language: 'fish', pattern: '**/*.fish' },
       { scheme: 'file', language: 'fish' }
     ],
     synchronize: {
@@ -102,7 +107,7 @@ export async function activate(context: ExtensionContext) {
 
 
   // Register commands
-  getFishLspCommands(context, client, serverPath, msg);
+  setFishLspCommands(context, client, serverPath, msg);
 
   // Handle workspace folder changes
   context.subscriptions.push(
@@ -132,6 +137,7 @@ export async function activate(context: ExtensionContext) {
   // TERMINAL INTEGRATION
   // https://github.com/microsoft/vscode-extension-samples/blob/main/shell-integration-sample/src/extension.ts
 
+  // Handle opening of text documents
   context.subscriptions.push(
     workspace.onDidOpenTextDocument(async (doc) => {
       if (doc.languageId === 'fish') {
@@ -183,6 +189,9 @@ export async function activate(context: ExtensionContext) {
   client.setTrace(Trace.fromString(loggingVerbosity));
   client.dispose();
 
+  /**
+   * Start the language client 
+   */
   try {
     msg.info('Starting language client...');
     if (client?.isRunning()) await client?.stop();

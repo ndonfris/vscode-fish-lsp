@@ -3,10 +3,10 @@ import { homedir } from 'os';
 import path from 'path';
 import { commands, ExtensionContext, Uri, window, workspace } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
-import { execFileAsync, fishPath } from './extension';
-import { ShowMessage } from './utils';
+import { fishPath } from './extension';
+import { ShowMessage, execFileAsync } from './utils';
 
-export function getFishLspCommands(context: ExtensionContext, client: LanguageClient, serverPath: string, msg: ShowMessage) {
+export function setFishLspCommands(context: ExtensionContext, client: LanguageClient, serverPath: string, msg: ShowMessage) {
   context.subscriptions.push(
     commands.registerCommand('fish-lsp.restart', async () => {
       if (client) {
@@ -253,12 +253,6 @@ export function getFishLspCommands(context: ExtensionContext, client: LanguageCl
         // Try to get the man page
         const { stdout, stderr } = await execFileAsync(fishPath, ['-c', `man -K ${command} | command cat`]);
 
-        // const outputChannel = window.createOutputChannel(`Man Page: ${command}`);
-        // outputChannel.clear();
-        // outputChannel.appendLine(`Manual page for: ${command}`);
-        // outputChannel.appendLine('='.repeat(50));
-        // outputChannel.append(stdout);
-        // outputChannel.show();
         if (stdout.toString().trim() !== '' && !stderr.toString().trim()) {
           await fs.promises.writeFile(`/tmp/fish-lsp/man/${command}.1`, stdout.toString().trim());
           const doc = await workspace.openTextDocument(Uri.file(`/tmp/fish-lsp/man/${command}.1`));
@@ -277,13 +271,6 @@ export function getFishLspCommands(context: ExtensionContext, client: LanguageCl
           const doc = await workspace.openTextDocument(Uri.file(`/tmp/fish-lsp/man/${command}.1`));
           await window.showTextDocument(doc);
           msg.info(`Fish help for '${command}' displayed`, { override: true });
-
-          // const outputChannel = window.createOutputChannel(`Fish Help: ${ command; } `);
-          // outputChannel.clear();
-          // outputChannel.appendLine(`Fish help for: ${ command; } `);
-          // outputChannel.appendLine('='.repeat(50));
-          // outputChannel.append(fishHelp);
-          // outputChannel.show();
         } catch (_) {
           // window.showErrorMessage(`No manual page or fish help found for '${command}'`);
           msg.error(`No manual page or fish help found for '${command}'`, { override: true });

@@ -1,9 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
+import { execFileAsync } from './utils';
 import { ExtensionContext, window, WorkspaceConfiguration } from 'vscode';
-const execFileAsync = promisify(execFile);
 
 /**
  * ~/.vscode/extensions/fish-lsp-.../node_modules/fish-lsp/bin/fish-lsp
