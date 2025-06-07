@@ -17,6 +17,68 @@ export function setFishLspCommands(context: ExtensionContext, client: LanguageCl
     }),
 
     commands.registerCommand('fish-lsp.env', async () => {
+      const activeEditor = window.activeTextEditor;
+      if (!activeEditor) {
+        msg.info('No active editor', { override: true });
+        return;
+      }
+      const outputChannel = window.createOutputChannel('fish-lsp env --show');
+      try {
+        const { stdout, stderr } = await execFileAsync(serverPath, ['env', '--show', '--no-comments']);
+
+        outputChannel.clear();
+
+        if (stdout) {
+          outputChannel.append(stdout);
+        }
+
+        if (!stdout && !stderr) {
+          outputChannel.appendLine('(No output)');
+        }
+
+        outputChannel.show();
+      } catch (error: unknown) {
+        outputChannel.clear();
+        outputChannel.appendLine('ERROR: `fish-lsp env --show`');
+        outputChannel.appendLine('---');
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        outputChannel.append(errorMessage);
+        outputChannel.show();
+      }
+    }),
+
+    commands.registerCommand('fish-lsp.env.show', async () => {
+      const activeEditor = window.activeTextEditor;
+      if (!activeEditor) {
+        msg.info('No active editor', { override: true });
+        return;
+      }
+      const outputChannel = window.createOutputChannel('fish-lsp env --show');
+      try {
+        const { stdout, stderr } = await execFileAsync(serverPath, ['env', '--show', '--no-comments']);
+
+        outputChannel.clear();
+
+        if (stdout) {
+          outputChannel.append(stdout);
+        }
+
+        if (!stdout && !stderr) {
+          outputChannel.appendLine('(No output)');
+        }
+
+        outputChannel.show();
+      } catch (error: unknown) {
+        outputChannel.clear();
+        outputChannel.appendLine('ERROR: `fish-lsp env --show`');
+        outputChannel.appendLine('---');
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        outputChannel.append(errorMessage);
+        outputChannel.show();
+      }
+    }),
+
+    commands.registerCommand('fish-lsp.env.create', async () => {
       try {
         const { stdout } = await execFileAsync(serverPath, ['env', '--create']);
         const outputChannel = window.createOutputChannel('Fish LSP Environment');
@@ -25,6 +87,38 @@ export function setFishLspCommands(context: ExtensionContext, client: LanguageCl
         outputChannel.show();
       } catch (error) {
         msg.error(`Failed to get fish-lsp environment: ${error}`);
+      }
+    }),
+
+    commands.registerCommand('fish-lsp.env.show-defaults', async () => {
+      const activeEditor = window.activeTextEditor;
+      if (!activeEditor) {
+        msg.info('No active editor', { override: true });
+        return;
+      }
+
+      const outputChannel = window.createOutputChannel('fish-lsp env --show-defaults');
+      try {
+        const { stdout, stderr } = await execFileAsync(serverPath, ['env', '--show-defaults', '--no-comments']);
+
+        outputChannel.clear();
+
+        if (stdout) {
+          outputChannel.append(stdout);
+        }
+
+        if (!stdout && !stderr) {
+          outputChannel.appendLine('(No output)');
+        }
+
+        outputChannel.show();
+      } catch (error: unknown) {
+        outputChannel.clear();
+        outputChannel.appendLine('ERROR: `fish-lsp env --show-defaults`');
+        outputChannel.appendLine('---');
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        outputChannel.append(errorMessage);
+        outputChannel.show();
       }
     }),
 

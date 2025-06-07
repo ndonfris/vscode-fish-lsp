@@ -4,7 +4,7 @@ import { DidChangeWorkspaceFoldersNotification, DidOpenTextDocumentNotification,
 import { getCommandFilePath, getServerPath } from './server';
 import { FishClientWorkspace } from './workspace';
 import { setFishLspCommands } from './commands';
-import { execFileAsync, showMessage, workspaceShortHand } from './utils';
+import { execFileAsync, getFishEnvironment, showMessage, workspaceShortHand } from './utils';
 
 export let fishPath: string = 'fish'; // Default fish path
 export let client: LanguageClient;
@@ -16,6 +16,9 @@ export async function activate(context: ExtensionContext) {
   const serverPath = await getServerPath(context, config);
   // Determine the path to the fish executable
   fishPath = await getCommandFilePath('fish') || `fish`;
+
+  // get the env variables from the fish executable
+  const env = await getFishEnvironment(fishPath);
 
   /**
    * Set up the logging verbosity && message handler
@@ -67,11 +70,17 @@ export async function activate(context: ExtensionContext) {
   const serverOptions: ServerOptions = {
     run: {
       command: serverPath,
-      args: ['start']
+      args: ['start'],
+      options: {
+        env,
+      }
     },
     debug: {
       command: serverPath,
-      args: ['start']
+      args: ['start'],
+      options: {
+        env,
+      }
     }
   };
 

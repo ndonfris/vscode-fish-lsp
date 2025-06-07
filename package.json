@@ -133,15 +133,27 @@
     "commands": [
       {
         "command": "fish-lsp.restart",
-        "title": "Restart the fish-lsp"
+        "title": "Fish LSP: Restart the fish-lsp"
       },
       {
         "command": "fish-lsp.env",
-        "title": "output `fish-lsp env --create`"
+        "title": "Fish LSP: output `fish-lsp env --show` (ALIAS for `fish-lsp.env.show`)"
+      },
+      {
+        "command": "fish-lsp.env.create",
+        "title": "Fish LSP: output `fish-lsp env --create`"
+      },
+      {
+        "command": "fish-lsp.env.show",
+        "title": "Fish LSP: output `fish-lsp env --show`"
+      },
+      {
+        "command": "fish-lsp.env.show-defaults",
+        "title": "Fish LSP: output `fish-lsp env --show-defaults`"
       },
       {
         "command": "fish-lsp.info",
-        "title": "show `fish-lsp info`"
+        "title": "Fish LSP: show `fish-lsp info`"
       },
       {
         "command": "fish-lsp.generateCompletions",

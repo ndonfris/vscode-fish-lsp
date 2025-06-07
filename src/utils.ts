@@ -51,3 +51,22 @@ export const workspaceShortHand = (folder: WorkspaceFolder): {
 };
                                                     
 export const execFileAsync = promisify(execFile);
+export async function getFishEnvironment(fishPath: string = 'fish'): Promise<typeof process.env> {
+  try {
+    const { stdout } = await execFileAsync(fishPath, [
+      '-c', 
+      'env'
+    ]);
+    
+    const fishEnv: Record<string, string> = {};
+    stdout.split('\n').forEach(line => {
+      const [key, ...valueParts] = line.split('=');
+      if (key && valueParts.length > 0) {
+        fishEnv[key] = valueParts.join('=');
+      }
+    });
+    return { ...fishEnv, ...process.env };
+  } catch {
+    return process.env;
+  }
+}
