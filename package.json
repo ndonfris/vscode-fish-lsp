@@ -127,6 +127,11 @@
             "$__fish_data_dir"
           ],
           "description": "List of workspace folders to use for the language server. If empty, the current workspace folder will be used."
+        },
+        "fish-lsp.disableWorkspaces": {
+          "type": "boolean",
+          "default": false,
+          "description": "Disable workspace folders for the language server. This will make the language server use the current file's directory as the workspace folder."
         }
       }
     },

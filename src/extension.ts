@@ -20,6 +20,8 @@ export async function activate(context: ExtensionContext) {
   // get the env variables from the fish executable
   const env = await getFishEnvironment(fishPath);
 
+  const workspaceFoldersDisabled: boolean = config.get('disableWorkspaces', false);
+
   /**
    * Set up the logging verbosity && message handler
    */
@@ -31,6 +33,7 @@ export async function activate(context: ExtensionContext) {
    */
   const defaultWorkspaces = config.get('workspaces', []);
   const defaultFolders = await Promise.all(defaultWorkspaces.map(async (val, idx) => {
+    if (workspaceFoldersDisabled) return undefined;
     const path = await execFileAsync(fishPath, ['-c', `echo ${val}`]);
     if (path.stdout) {
       const escapedPath = path.stdout.trim();
@@ -64,7 +67,9 @@ export async function activate(context: ExtensionContext) {
     }
   }
   // add all the workspace folders to the workspace object
-  workspace.updateWorkspaceFolders(0, 0, ...allFolders.map(w => w.toWorkspaceFolder()));
+  if (workspace.workspaceFolders && !workspaceFoldersDisabled) {
+    workspace.updateWorkspaceFolders(0, 0, ...allFolders.map(w => w.toWorkspaceFolder()));
+  }
 
   // Server options - do not specify transport as fish-lsp handles stdio by default
   const serverOptions: ServerOptions = {
@@ -84,6 +89,18 @@ export async function activate(context: ExtensionContext) {
     }
   };
 
+  const initializationOptions = workspaceFoldersDisabled 
+    ? { fishPath } 
+    : {
+      fishPath,
+      workspacesFolders: allFolders,
+      fish_lsp_all_indexed_paths: allFolders.map(folder => folder.uri.fsPath),
+    };
+
+  const workspaceFolder = !workspaceFoldersDisabled
+    ? allFolders?.[0]?.toWorkspaceFolder()
+    : undefined;
+
   // Client options
   const clientOptions: LanguageClientOptions = {
     documentSelector: [
@@ -94,14 +111,9 @@ export async function activate(context: ExtensionContext) {
     },
     outputChannel: window.createOutputChannel('fish-lsp'),
     traceOutputChannel: window.createOutputChannel('fish-lsp Trace'),
-    workspaceFolder: allFolders?.[0]?.toWorkspaceFolder(),
+    workspaceFolder, // Set the workspace folder if not disabled
     // Enable workspace folder capabilities
-    initializationOptions: {
-      // Add any initialization options here
-      fishPath,
-      workspacesFolders: allFolders,
-      fish_lsp_all_indexed_paths: allFolders.map(folder => folder.uri.fsPath),
-    },
+    initializationOptions,
   };
 
   // Create the language client
@@ -117,81 +129,83 @@ export async function activate(context: ExtensionContext) {
   setFishLspCommands(context, client, serverPath, msg);
 
   // Handle workspace folder changes
-  context.subscriptions.push(
-    workspace.onDidChangeWorkspaceFolders(async (event) => {
-      if (client && client.isRunning()) {
-        // Notify the server about workspace folder changes
-        try {
-          await client.sendNotification('workspace/didChangeWorkspaceFolders', {
-            // fix if event.{added,removed} is contained inside an existing workspace folder
-            event: {
-              added: event.added.map(workspaceShortHand),
-              removed: event.removed.map(workspaceShortHand),
-            }
-          });
-        } catch (error) {
-          msg.error(`Failed to notify server of workspace folder changes: ${error}`);
-        }
-      } else {
-        // await client?.stop();
-        await client?.start();
-      }
-      msg.info(`Workspace folders updated: ${event.added.map(folder => folder.name).join(', ')}`);
-      msg.info(`Workspace folders updated: ${event.removed.map(folder => folder.name).join(', ')}`);
-    })
-  );
-
-  // TERMINAL INTEGRATION
-  // https://github.com/microsoft/vscode-extension-samples/blob/main/shell-integration-sample/src/extension.ts
-
-  // Handle opening of text documents
-  context.subscriptions.push(
-    workspace.onDidOpenTextDocument(async (doc) => {
-      if (doc.languageId === 'fish') {
-        msg.info(`File opened: ${doc.uri.fsPath}`);
-        const wsFolder = allFolders.find(folder => folder.contains(doc.uri));
-        if (wsFolder && client?.isRunning()) {
-          if (!client?.isRunning()) {
-            msg.info(`Client is not running, starting client for file: ${doc.uri.fsPath}`, {
-              override: true,
-            });
-            await client?.start();
-          }
-          await client.sendNotification(DidChangeWorkspaceFoldersNotification.type, {
-            event: {
-              added: [workspaceShortHand(wsFolder.toWorkspaceFolder())],
-              removed: []
-            },
-          });
-        } else {
-          // If no workspace folder, we could prompt to add the file's directory as a workspace folder
-          const fileUri = doc.uri;
-          const existingFolder = allFolders.find(folder => folder.contains(fileUri));
-          if (!existingFolder) {
-            const newWorkspace = FishClientWorkspace.createFromPath(fileUri.fsPath);
-            if (newWorkspace) {
-              workspace.updateWorkspaceFolders(
-                workspace.workspaceFolders?.length || 0,
-                0,
-                { uri: newWorkspace.uri, name: newWorkspace.name }
-              );
-              msg.info(`Added ${newWorkspace.name} to workspace`);
-            }
-          } else {
-            msg.info(`File is already in workspace: ${existingFolder.name}`);
-            await client?.sendNotification(DidOpenTextDocumentNotification.type, {
-              textDocument: {
-                uri: fileUri.toString(),
-                languageId: 'fish',
-                version: doc.version,
-                text: doc.getText()
+  if (!workspaceFoldersDisabled) {
+    context.subscriptions.push(
+      workspace.onDidChangeWorkspaceFolders(async (event) => {
+        if (client && client.isRunning()) {
+          // Notify the server about workspace folder changes
+          try {
+            await client.sendNotification('workspace/didChangeWorkspaceFolders', {
+              // fix if event.{added,removed} is contained inside an existing workspace folder
+              event: {
+                added: event.added.map(workspaceShortHand),
+                removed: event.removed.map(workspaceShortHand),
               }
             });
+          } catch (error) {
+            msg.error(`Failed to notify server of workspace folder changes: ${error}`);
+          }
+        } else {
+          // await client?.stop();
+          await client?.start();
+        }
+        msg.info(`Workspace folders updated: ${event.added.map(folder => folder.name).join(', ')}`);
+        msg.info(`Workspace folders updated: ${event.removed.map(folder => folder.name).join(', ')}`);
+      })
+    );
+
+    // TERMINAL INTEGRATION
+    // https://github.com/microsoft/vscode-extension-samples/blob/main/shell-integration-sample/src/extension.ts
+
+    // Handle opening of text documents
+    context.subscriptions.push(
+      workspace.onDidOpenTextDocument(async (doc) => {
+        if (doc.languageId === 'fish') {
+          msg.info(`File opened: ${doc.uri.fsPath}`);
+          const wsFolder = allFolders.find(folder => folder.contains(doc.uri));
+          if (wsFolder && client?.isRunning()) {
+            if (!client?.isRunning()) {
+              msg.info(`Client is not running, starting client for file: ${doc.uri.fsPath}`, {
+                override: true,
+              });
+              await client?.start();
+            }
+            await client.sendNotification(DidChangeWorkspaceFoldersNotification.type, {
+              event: {
+                added: [workspaceShortHand(wsFolder.toWorkspaceFolder())],
+                removed: []
+              },
+            });
+          } else {
+            // If no workspace folder, we could prompt to add the file's directory as a workspace folder
+            const fileUri = doc.uri;
+            const existingFolder = allFolders.find(folder => folder.contains(fileUri));
+            if (!existingFolder) {
+              const newWorkspace = FishClientWorkspace.createFromPath(fileUri.fsPath);
+              if (newWorkspace) {
+                workspace.updateWorkspaceFolders(
+                  workspace.workspaceFolders?.length || 0,
+                  0,
+                  { uri: newWorkspace.uri, name: newWorkspace.name }
+                );
+                msg.info(`Added ${newWorkspace.name} to workspace`);
+              }
+            } else {
+              msg.info(`File is already in workspace: ${existingFolder.name}`);
+              await client?.sendNotification(DidOpenTextDocumentNotification.type, {
+                textDocument: {
+                  uri: fileUri.toString(),
+                  languageId: 'fish',
+                  version: doc.version,
+                  text: doc.getText()
+                }
+              });
+            }
           }
         }
-      }
-    }),
-  );
+      }),
+    );
+  }
 
   client.setTrace(Trace.fromString(loggingVerbosity));
   // client.dispose();
