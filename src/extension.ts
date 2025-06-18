@@ -99,7 +99,7 @@ export async function activate(context: ExtensionContext) {
 
   const workspaceFolder = !workspaceFoldersDisabled
     ? allFolders?.[0]?.toWorkspaceFolder()
-    : undefined;
+    : workspace.workspaceFolders?.at(0) || undefined;
 
   // Client options
   const clientOptions: LanguageClientOptions = {
