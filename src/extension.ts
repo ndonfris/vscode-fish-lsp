@@ -50,15 +50,19 @@ export async function activate(context: ExtensionContext) {
     }
     return undefined;
   }).filter(ws => ws !== undefined) as Promise<WorkspaceFolder>[]);
+
   /**
    * Create an array of all the workspace folders
    */
-  const allFolders = defaultFolders.map(folder => FishClientWorkspace.fromFolder(folder));
+  const allFolders = workspace.workspaceFolders && !workspaceFoldersDisabled 
+    ? defaultFolders.map(folder => FishClientWorkspace.fromFolder(folder))
+    : [] as FishClientWorkspace[];
+
   /**
    * Add the current processes working directory as a workspace folder if it is not already included
    */
   let currentFolder = allFolders.find(ws => ws.contains(process.cwd())) || allFolders.find(ws => ws.contains(Uri.file(process.cwd()).fsPath));
-  if (!currentFolder) {
+  if (!currentFolder && !workspaceFoldersDisabled) {
     try {
       currentFolder = FishClientWorkspace.createFromPath(Uri.parse(process.cwd()).fsPath);
       if (currentFolder) allFolders.unshift(currentFolder);
