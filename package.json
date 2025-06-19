@@ -127,6 +127,11 @@
             "$__fish_data_dir"
           ],
           "description": "List of workspace folders to use for the language server. If empty, the current workspace folder will be used."
+        },
+        "fish-lsp.enableWorkspaceFolders": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable the fish-lsp VSCode extension to add new WorkspaceFolders when the server opens a fish document in another fish workspace. Without this setting enabled, going to definitions outside of the current workspace will not index any new workspaces. Enabling this setting will automatically index new workspaces, and add them to the current VSCode workspace."
         }
       }
     },
@@ -182,6 +187,14 @@
       {
         "command": "fish-lsp.quickfix.all",
         "title": "Fish LSP: fix all quickfix diagnostics in file"
+      },
+      {
+        "command": "fish-lsp.show.currentWorkspace",
+        "title": "Fish LSP: show current workspace"
+      },
+      {
+        "command": "fish-lsp.update.currentWorkspace",
+        "title": "Fish LSP: update current workspace"
       }
     ],
     "menus": {

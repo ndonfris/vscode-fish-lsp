@@ -393,5 +393,31 @@ export function setFishLspCommands(context: ExtensionContext, client: LanguageCl
       }
       return undefined;
     }),
+
+    commands.registerCommand('fish-lsp.show.currentWorkspace', async () => {
+      const activeEditor = window.activeTextEditor;
+      if (!activeEditor) {
+        msg.info('No active editor', { override: true });
+        return;
+      }
+
+      return await commands.executeCommand('fish-lsp.showWorkspaceMessage') ;
+
+    }),
+
+    commands.registerCommand('fish-lsp.update.currentWorkspace', async () => {
+      const activeEditor = window.activeTextEditor;
+      if (!activeEditor) {
+        msg.info('No active editor', { override: true });
+        return;
+      }
+
+      const filepath = activeEditor.document.uri.fsPath;
+
+      msg.info('RUNNING COMMAND: fish-lsp.updateWorkspace', { override: true });
+      msg.info('Updating workspace for ' + filepath, { override: true });
+
+      return await commands.executeCommand('fish-lsp.updateWorkspace', filepath) ;
+    })
   );
 }
