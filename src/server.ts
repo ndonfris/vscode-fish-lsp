@@ -1,13 +1,11 @@
-import * as path from 'path';
-import * as fs from 'fs';
-import { execFileAsync } from './utils';
-import { ExtensionContext, window, WorkspaceConfiguration } from 'vscode';
+import { config, execFileAsync, PathUtils, winlog } from './utils';
+import { ExtensionContext } from 'vscode';
 
 /**
  * ~/.vscode/extensions/fish-lsp-.../node_modules/fish-lsp/bin/fish-lsp
  */
 function extensionFishLspPath(context: ExtensionContext): string {
-  return path.join(
+  return PathUtils.join(
     context.extensionPath,
     'node_modules',
     'fish-lsp',
@@ -39,39 +37,43 @@ export async function getCommandFilePath(...command: string[]): Promise<string |
  *   - useGlobalExecutable: use the globally installed version of fish-lsp (if found from `which fish-lsp`)
  *   - executablePath: use the configured path to the fish-lsp executable. Will override the other two options
  */
-export async function getServerPath(context: ExtensionContext, config: WorkspaceConfiguration): Promise<string> {
+export async function getServerPath(context: ExtensionContext): Promise<string> {
   // Determine which fish-lsp executable to use
-  let serverPath: string;
+  let extServerPath: string = extensionFishLspPath(context);
+  let serverPath: string = extServerPath;
 
-  const useGlobalExecutable = config.get<boolean>('useGlobalExecutable', false);
-  const executablePath = config.get<string>('executablePath', '');
+  const useGlobalExecutable = config.useGlobalExecutable;
+  const executablePath = config.executablePath;
 
   if (executablePath.trim() !== '') {
-    serverPath = executablePath;
-    console.log('Using configured `fish-lsp.executablePath` at:', serverPath);
-
+    if (!PathUtils.isExecutable(executablePath)) {
+      winlog.warn(`Configured fish-lsp executable at '${executablePath}' is not executable.`);
+    } else {
+      serverPath = executablePath;
+      winlog.log(`Using configured 'fish-lsp.executablePath' at: ${serverPath}`);
+    }
   } else if (useGlobalExecutable) {
-    try {
-      // Use 'which' on Unix/Linux/macOS or 'where' on Windows to find global executable
-      serverPath = (await getCommandFilePath('fish-lsp')) || '';
-      console.log('Using globally installed fish-lsp at:', serverPath);
-    } catch (err) {
-      console.log('Global fish-lsp not found, falling back to bundled version', err);
-      serverPath = extensionFishLspPath(context);
+    const globalServerPath = await getCommandFilePath('fish-lsp');
+    if (globalServerPath) {
+      winlog.log(`Using global fish-lsp executable at: '${globalServerPath}'`);
+      serverPath = globalServerPath;
+    } else {
+      winlog.warn('Global fish-lsp executable not found, falling back to bundled version');
     }
   } else {
-    serverPath = extensionFishLspPath(context);
-    console.log('Using bundled fish-lsp as configured');
+    serverPath = extServerPath;
+    winlog.log('Using bundled fish-lsp as configured');
   }
 
   // Verify server path exists and is executable
-  try {
-    await fs.promises.access(serverPath, fs.constants.X_OK);
-    console.log('Server path exists and is executable:', serverPath);
-  } catch (pathErr) {
-    console.error('Server path error:', pathErr);
-    window.showErrorMessage(`Failed to find fish-lsp binary at ${serverPath}`);
-    throw pathErr;
+  if (!PathUtils.isExecutable(serverPath)) {
+    if (PathUtils.isExecutable(extServerPath)) {
+      winlog.warn(`Invalid 'settings.json' fish-lsp server related value. Using bundled fish-lsp at '${extServerPath}' instead.`, { override: true });
+      serverPath = extServerPath;
+      return serverPath;
+    }
+    winlog.error(`Server path '${serverPath}' is not executable.`, { override: true });
+    throw new Error(`'fish-lsp' binary at '${serverPath}' is not executable.`);
   }
   return serverPath;
 }

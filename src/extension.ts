@@ -1,62 +1,63 @@
+// import * as vscode from 'vscode';
+// import { Uri } from 'vscode';
+// import { DidChangeTextDocumentNotification, DidChangeTextDocumentParams, DidChangeWorkspaceFoldersNotification, DidChangeWorkspaceFoldersParams, DidOpenTextDocumentNotification, DidOpenTextDocumentParams, LanguageClient, LanguageClientOptions, RevealOutputChannelOn, TextDocumentItem, Trace, TransportKind, WorkspaceFolder } from 'vscode-languageclient/node';
+// import { getCommandFilePath, getServerPath } from './server';
+// import { FishClientWorkspace } from './workspace';
+// import { setFishLspCommands } from './commands';
+// import { getFishEnvironment, showMessage, workspaceShortHand } from './utils';
+//
+// export let fishPath: string = 'fish'; // Default fish path
+// export const notifiedWorkspaces = new Set<string>(); // Track notified workspaces to avoid duplicates
+// export let client: LanguageClient;
+
+// src/extension.ts
 import * as vscode from 'vscode';
 import { Uri } from 'vscode';
-import { DidChangeTextDocumentNotification, DidChangeTextDocumentParams, DidChangeWorkspaceFoldersNotification, DidChangeWorkspaceFoldersParams, DidOpenTextDocumentNotification, DidOpenTextDocumentParams, LanguageClient, LanguageClientOptions, RevealOutputChannelOn, TextDocumentItem, Trace, TransportKind, WorkspaceFolder } from 'vscode-languageclient/node';
+import {
+  DidChangeTextDocumentNotification,
+  DidChangeTextDocumentParams,
+  DidChangeWorkspaceFoldersNotification,
+  DidChangeWorkspaceFoldersParams,
+  DidOpenTextDocumentNotification,
+  DidOpenTextDocumentParams,
+  LanguageClient,
+  LanguageClientOptions,
+  RevealOutputChannelOn,
+  TextDocumentItem,
+  Trace,
+  TransportKind,
+  WorkspaceFolder
+} from 'vscode-languageclient/node';
 import { getCommandFilePath, getServerPath } from './server';
-import { FishClientWorkspace } from './workspace';
+import { FishWorkspace, FishWorkspaceCollection, WorkspaceUtils } from './workspace';
 import { setFishLspCommands } from './commands';
-import { getFishEnvironment, showMessage, workspaceShortHand } from './utils';
+import {
+  getFishEnvironment,
+  winlog,
+  config,
+  PathUtils,
+  TextDocumentUtils,
+  WorkspaceFolderUtils,
+  getFishValue
+} from './utils';
 
 export let fishPath: string = 'fish'; // Default fish path
-export const notifiedWorkspaces = new Set<string>(); // Track notified workspaces to avoid duplicates
 export let client: LanguageClient;
 
-const config = vscode.workspace.getConfiguration('fish-lsp');
-const workspaceFoldersEnabled: boolean = config.get('enableWorkspaceFolders', false);
-/**
- * Set up the logging verbosity && message handler
- */
-const loggingVerbosity: 'off' | 'messages' | 'verbose' = config.get('trace.server', 'off');
-const msg = showMessage(vscode.window, loggingVerbosity);
-export const defaultWorkspaces = config.get('workspaces', []);
-
-function findFishWorkspaceRoot(uri: vscode.Uri): vscode.Uri | undefined {
-  const fsPath = uri.fsPath;
-  const fishDirs = ['functions', 'completions', 'conf.d'];
-  const path = require('path');
-
-  // If this IS config.fish, the workspace root is its parent directory
-  if (path.basename(fsPath) === 'config.fish') {
-    return vscode.Uri.parse(path.dirname(fsPath));
-  }
-
-  // Otherwise, walk up looking for fish workspace indicators
-  let current = path.dirname(fsPath); // Start from parent directory
-  while (current !== path.dirname(current)) {
-    const hasConfigFile = require('fs').existsSync(path.join(current, 'config.fish'));
-    const hasFishDirs = fishDirs.some(dir =>
-      require('fs').existsSync(path.join(current, dir))
-    );
-
-    if (hasConfigFile || hasFishDirs) {
-      return vscode.Uri.parse(current);
-    }
-
-    current = path.dirname(current);
-  }
-
-  return undefined;
-}
+// Use the centralized workspace collection
+const workspaceCollection = new FishWorkspaceCollection();
+const notifiedWorkspaces = new Set<string>(); // Track notified workspaces to avoid duplicates
 
 function sendWorkspaceChangeNotification(workspaceUri: vscode.Uri): void {
-  msg.info(`Sending workspace change notification for: ${workspaceUri.fsPath}`);
+  winlog.info(`Sending workspace change notification for: ${workspaceUri.fsPath}`);
   if (!client || notifiedWorkspaces.has(workspaceUri.fsPath)) {
-    msg.info(`Workspace already notified: ${workspaceUri.fsPath}`);
+    winlog.info(`Workspace already notified: ${workspaceUri.fsPath}`);
     return;
   }
 
   const workspaceFolder: WorkspaceFolder = {
     uri: workspaceUri.toString(),
-    name: require('path').basename(workspaceUri.fsPath),
+    name: PathUtils.basename(workspaceUri.fsPath),
   };
 
   const params: DidChangeWorkspaceFoldersParams = {
@@ -66,26 +67,27 @@ function sendWorkspaceChangeNotification(workspaceUri: vscode.Uri): void {
     },
   };
 
-  msg.info(`Notifying server of workspace folder: ${workspaceFolder.name} at ${workspaceFolder.uri}`);
+  winlog.info(`Notifying server of workspace folder: ${workspaceFolder.name} at ${workspaceFolder.uri}`);
   client.sendNotification(DidChangeWorkspaceFoldersNotification.type, params);
   notifiedWorkspaces.add(workspaceUri.fsPath);
 }
 
-function sendDidOpenNotification(document: vscode.TextDocument): void {
-  // don't send open notifications when the client is not initialized or the document is not a fish file
-  if (!client || document.languageId !== 'fish') return;
+async function sendDidOpenNotification(document: vscode.TextDocument): Promise<void> {
+  // Don't send open notifications when the client is not initialized or the document is not a fish file
+  if (!client || !TextDocumentUtils.isFishDocument(document)) return;
 
   vscode.commands.executeCommand('fish-lsp.update.currentWorkspace');
 
-  // Check if this document is in a new fish workspace
-  const workspaceRoot = findFishWorkspaceRoot(document.uri);
-  if (workspaceRoot) {
-    sendWorkspaceChangeNotification(workspaceRoot);
+  // Check if this document is in a new fish workspace using the new utilities
+  const workspaceRootPath = WorkspaceUtils.findWorkspaceRoot(document.uri.fsPath);
+  if (workspaceRootPath) {
+    const workspaceUri = vscode.Uri.file(workspaceRootPath);
+    sendWorkspaceChangeNotification(workspaceUri);
   }
 
   vscode.commands.executeCommand('fish-lsp.updateWorkspace', document.uri.fsPath);
 
-  // send the didOpen notification 
+  // Send the didOpen notification 
   const textDocumentItem: TextDocumentItem = {
     uri: document.uri.toString(),
     languageId: document.languageId,
@@ -94,7 +96,7 @@ function sendDidOpenNotification(document: vscode.TextDocument): void {
   };
 
   console.log('did update current workspace');
-  msg.info(`Sending didOpen notification for document: ${document.uri.fsPath}`);
+  winlog.info(`Sending didOpen notification for document: ${document.uri.fsPath}`);
 
   const params: DidOpenTextDocumentParams = {
     textDocument: textDocumentItem,
@@ -113,189 +115,281 @@ function sendDidOpenNotification(document: vscode.TextDocument): void {
 
   client.sendNotification(DidChangeTextDocumentNotification.type, changeParams);
 
-  const workspace = FishClientWorkspace.createFromPath(document.uri.fsPath);
+  // Add workspace to collection and notify server
+  const workspace = workspaceCollection.get(document.uri);
   if (workspace) {
-    client.sendNotification(DidChangeWorkspaceFoldersNotification.type, {
-      event: {
-        added: [workspace.toServerWorkspace()],
-        removed: [],
-      },
-    });
-  }
-  if (workspaceFoldersEnabled && !vscode.workspace.getWorkspaceFolder(document.uri)) {
-    vscode.workspace.updateWorkspaceFolders(
-      vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
-      0,
-      workspace.toWorkspaceFolder(),
-    );
+    workspaceCollection.getAll()
+    // client.sendNotification(DidChangeWorkspaceFoldersNotification.type, {
+    //   event: {
+    //     added: [workspace.toServerWorkspace()],
+    //     removed: [],
+    //   },
+    // });
+
+    // Add to VSCode workspace if enabled
+    const foundWorkspace = vscode.workspace.getWorkspaceFolder(document.uri);
+    // if (config.enableWorkspaceFolders && !foundWorkspace) {
+    //   // workspaceCollection.add(workspace);
+    //   // vscode.workspace.workspaceFolders?.map(ws => FishWorkspace.create(ws.uri)).forEach(ws => {
+    //   //   if (ws && ws.path !== workspace.path) {
+    //   //     notifiedWorkspaces.add(ws.path);
+    //   //     workspaceCollection.add(ws);
+    //   //   }
+    //   // });
+    if (config.enableWorkspaceFolders) {
+      // const existingWorkspaces = vscode.workspace.workspaceFolders || [];
+      vscode.workspace.updateWorkspaceFolders(
+        0,
+        vscode.workspace.workspaceFolders?.length || 1,
+        workspace.withIndex(0).toVSCodeWorkspaceFolder()
+      );
+      winlog.info(`Added workspace folder: ${workspace.name} at ${workspace.path}`);
+      console.log(`Added workspace folder: ${workspace.name} at ${workspace.path}`);
+      console.log(`Current Folders: ${JSON.stringify(vscode.workspace.workspaceFolders?.map(ws => ws.name), null, 2)}`);
+      if (!client?.needsStart()) await client.restart();
+      console.log(`restarting...`);
+      console.log(`Workspace folders after update: ${JSON.stringify(vscode.workspace.workspaceFolders?.map(ws => ws.name), null, 2)}`);
+
+    }
+    // }
   }
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-  // Check if user wants to use global executable
-  // Determine which fish-lsp executable to use
-  const serverPath = await getServerPath(context, config);
-  // Determine the path to the fish executable
-  fishPath = await getCommandFilePath('fish') || `fish`;
+  try {
+    // Determine which fish-lsp executable to use
+    const serverPath = await getServerPath(context);
 
-  // get the env variables from the fish executable
-  const env = await getFishEnvironment(fishPath);
+    // Determine the path to the fish executable
+    fishPath = await getCommandFilePath('fish') || 'fish';
 
-  // Server options - do not specify transport as fish-lsp handles stdio by default
-  const serverOptions = {
-    run: {
-      command: serverPath,
-      args: ['start'],
-      transport: TransportKind.ipc,
-      env: {
-        ...env,
-      },
-    },
-    debug: {
-      command: serverPath,
-      args: ['start'],
-      env: {
-        ...env,
-        // Add any additional environment variables needed for the server in debug mode
-      },
+    // Validate executables
+    if (!PathUtils.isExecutable(fishPath)) {
+      winlog.warn(`Fish executable may not be accessible: ${fishPath}`);
     }
-  };
+    if (!PathUtils.isExecutable(serverPath)) {
+      winlog.error(`Fish-lsp server executable not found or not executable: ${serverPath}`);
+      throw new Error(`Invalid fish-lsp server path: ${serverPath}`);
+    }
 
-  const openDocument = vscode.window.activeTextEditor?.document;
+    // Get the env variables from the fish executable
+    const env = await getFishEnvironment(fishPath);
 
-  const initializationOptions = {
-    fishPath,
-    // rootPath: vscode.workspace.rootPath,
-    rootUri: openDocument ? Uri.parse(findFishWorkspaceRoot(openDocument.uri)!.toString()) : undefined,
-    capabilities: {
-      workspace: {
-        workspaceFolders: true,
-        changeNotifications: true,
+    // Server options
+    const serverOptions = {
+      run: {
+        command: serverPath,
+        args: ['start'],
+        transport: TransportKind.ipc,
+        env: {
+          ...env,
+        },
       },
-    },
-    workspacesFolders: vscode.workspace.workspaceFolders?.map(folder => folder.uri.fsPath) || [],
-  };
+      debug: {
+        command: serverPath,
+        args: ['start'],
+        env: {
+          ...env,
+          // Add any additional environment variables needed for the server in debug mode
+        },
+      }
+    };
 
-  const workspaceFolder = FishClientWorkspace.createFromPath(vscode.window.activeTextEditor?.document.uri.fsPath || process.cwd());
+    const defaultItems = env['fish_lsp_all_indexed_paths']?.trim().split(' ') || ['__fish_config_dir', '__fish_data_dir'];
+    winlog.info(`Default indexed paths: ${defaultItems.join(', ')}`);
+    const defaultSpaces = await Promise.all(defaultItems.map(async item => {
+      const path = await getFishValue(item);
+      if (path && PathUtils.isDirectory(path)) {
+        return path;
+      }
+      winlog.warn(`Default indexed path '${item}' is not a valid directory: ${path}`);
+      return '';
+    }));
 
-  console.log('Fish LSP Initialization Options:', initializationOptions);
-  console.log('workspaceFolder:', {
-    name: workspaceFolder.name,
-    path: workspaceFolder.path,
-    uri: workspaceFolder.uri.toString(),
-  });
-  console.log('All Workspace Folders:', vscode.workspace.workspaceFolders);
-  // msg.info(`All workspace folders: ${allFolders.map(folder => folder.name).join(', ')}`);
+    const openDocument = vscode.window.activeTextEditor?.document;
+    const initialWorkspace = TextDocumentUtils.getInitialFishWorkspaceFolder(workspaceCollection, openDocument);
 
-  // Client options
-  const clientOptions: LanguageClientOptions = {
-    // documentSelector: [ { scheme: 'file', language: 'fish' } ],
-    documentSelector: [{ scheme: 'file', language: 'fish' }],
-    synchronize: {
-      fileEvents: vscode.workspace.createFileSystemWatcher('**/*.fish'),
-    },
-    outputChannel: vscode.window.createOutputChannel('fish-lsp'),
-    traceOutputChannel: vscode.window.createOutputChannel('fish-lsp Trace'),
-    workspaceFolder: openDocument ? FishClientWorkspace.createFromPath(openDocument?.uri.fsPath) : vscode.workspace.workspaceFolders?.at(0),
-    // Enable workspace folder capabilities
-    progressOnInitialization: true,
-    revealOutputChannelOn: RevealOutputChannelOn.Info,
-    markdown: {
-      isTrusted: true, // Enable trusted markdown rendering
-    },
-    diagnosticCollectionName: 'fish-lsp',
-    initializationFailedHandler: () => false,
-    initializationOptions: {
-      // fishPath,
+    const allWorkspaces = [
+      initialWorkspace,
+      ...WorkspaceFolderUtils.getVSCodeWorkspaceFolders(),
+      ...(config.enableWorkspaceFolders ? [] : defaultSpaces.map(space => FishWorkspace.create(space))),
+    ].reduce((acc: FishWorkspace[], workspace) => {
+      if (!workspace) return acc;
+      const curr = FishWorkspace.fromWorkspaceFolder(workspace);
+      if (!acc.some(ws => ws.equals(curr))) {
+        acc.push(curr);
+      }
+      return acc;
+    }, []);
+
+    const allIndexedWorkspaces = Array.from(allWorkspaces).map((ws, i) => ws.withIndex(i));
+    if (openDocument) {
+      const documentWorkspace = FishWorkspace.create(openDocument);
+      if (documentWorkspace && !allIndexedWorkspaces.some(ws => ws.equals(documentWorkspace)) && config.enableWorkspaceFolders) {
+        allIndexedWorkspaces.unshift(documentWorkspace);
+        const workspaceFolder = vscode.workspace.getWorkspaceFolder(openDocument.uri);
+        vscode.workspace.updateWorkspaceFolders(
+          0,
+          null,
+          workspaceFolder ? workspaceFolder : documentWorkspace?.withIndex(0).toVSCodeWorkspaceFolder()
+        );
+      }
+    }
+    // const allWorkspaceFolders = vscode.workspace.workspaceFolders || [];
+    // vscode.workspace.updateWorkspaceFolders(0, Math.min(allWorkspaceFolders?.length - 1, 0))
+    // allIndexedWorkspaces.forEach(folder => {
+    //   const workspace = workspaceCollection.get(folder);
+    //   if () {
+    //     winlog.info(`Workspace already exists: ${folder.name} at ${folder.path}`);
+    //   }
+    // })
+
+    // workspaceCollection.addInitial();
+    // workspaceCollection.add(initialWorkspace);
+    workspaceCollection.add(...allWorkspaces);
+
+    // if (defaultSpaces.length !== 0) {
+    //   allWorkspaces.forEach(folder => {
+    //     const workspace = FishWorkspace.create(folder.uri);
+    //     if (workspace) {
+    //       defaultSpaces.push(workspace.path);
+    //       workspaceCollection.add(workspace);
+    //       notifiedWorkspaces.add(workspace.path);
+    //     }
+    //   });
+    // }
+
+    const initializationOptions = {
+      fishPath,
+      rootUri: openDocument?.uri.toString(),
+      rootPath: initialWorkspace?.path.toString(),
+      // workspacesFolders: allIndexedWorkspaces.map((ws, index) => ({index, ...ws.toServerWorkspace()})),
       capabilities: {
         workspace: {
           workspaceFolders: true,
           changeNotifications: true,
         },
       },
-    },
-  };
+      fish_lsp_all_indexed_paths: allIndexedWorkspaces.map(ws => ws.path),
+      // fish_lsp_all_indexed_paths: [
+      //   ...defaultSpaces,
+      //   ...workspaceCollection.getAll().map(folder => folder.uri.fsPath),
+      // ],
+    };
 
-  // Create the language client
-  client = new LanguageClient(
-    'fish-lsp',
-    'fish-lsp',
-    serverOptions,
-    clientOptions,
-  );
-
-  client.setTrace(Trace.fromString(loggingVerbosity));
-
-  // Send didOpen when documents are opened
-  const onDidOpenTextDocument = vscode.workspace.onDidOpenTextDocument(sendDidOpenNotification);
-  const onDidChangeTextDocument = vscode.workspace.onDidChangeTextDocument((e) => {
-    if (e.document) {
-      sendDidOpenNotification(e.document);
+    console.log('Fish LSP Initialization Options:', JSON.stringify(initializationOptions, null, 2));
+    if (initialWorkspace) {
+      console.log('Initial workspace:', {
+        name: initialWorkspace.name,
+        path: initialWorkspace.path,
+        uri: initialWorkspace.uri.toString(),
+      });
     }
-  });
+    console.log('All Workspace Folders:', vscode.workspace.workspaceFolders);
 
-  // Send didOpen when active editor changes to update server workspace context
-  const onDidChangeActiveTextEditor = vscode.window.onDidChangeActiveTextEditor((editor) => {
-    if (editor?.document) {
-      sendDidOpenNotification(editor.document);
-    }
-  });
+    // Client options
+    const clientOptions: LanguageClientOptions = {
+      documentSelector: [{ scheme: 'file', language: 'fish' }],
+      synchronize: {
+        fileEvents: vscode.workspace.createFileSystemWatcher('**/*.fish'),
+      },
+      outputChannel: vscode.window.createOutputChannel('fish-lsp'),
+      traceOutputChannel: vscode.window.createOutputChannel('fish-lsp Trace'),
+      workspaceFolder: vscode.workspace.workspaceFolders?.at(0),
+      progressOnInitialization: true,
+      revealOutputChannelOn: RevealOutputChannelOn.Info,
+      markdown: {
+        isTrusted: true, // Enable trusted markdown rendering
+      },
+      initializationFailedHandler: () => false,
+      initializationOptions,
+    };
 
-  const onDidChangeWorkspaceFolders = vscode.workspace.onDidChangeWorkspaceFolders(async (event) => {
-    // Notify the server about workspace folder changes
-    event.added.forEach(folder => {
-      const workspaceRoot = findFishWorkspaceRoot(folder.uri);
-      if (workspaceRoot) {
-        notifiedWorkspaces.add(workspaceRoot.fsPath);
+    // Create the language client
+    client = new LanguageClient(
+      'fish-lsp',
+      'fish-lsp',
+      serverOptions,
+      clientOptions,
+    );
+
+    client.setTrace(Trace.fromString(config.trace));
+
+    // Event handlers using the new utilities
+    const onDidOpenTextDocument = vscode.workspace.onDidOpenTextDocument(sendDidOpenNotification);
+
+    const onDidChangeTextDocument = vscode.workspace.onDidChangeTextDocument((e) => {
+      if (TextDocumentUtils.isFishDocument(e.document)) {
+        sendDidOpenNotification(e.document);
       }
     });
-    event.removed.forEach(folder => {
-      const workspaceRoot = findFishWorkspaceRoot(folder.uri);
-      if (workspaceRoot) {
-        notifiedWorkspaces.delete(workspaceRoot.fsPath);
+
+    const onDidChangeActiveTextEditor = vscode.window.onDidChangeActiveTextEditor((editor) => {
+      if (editor?.document && TextDocumentUtils.isFishDocument(editor.document)) {
+        sendDidOpenNotification(editor.document);
       }
     });
 
-    client.sendNotification('workspace/didChangeWorkspaceFolders', {
-      // fix if event.{added,removed} is contained inside an existing workspace folder
-      event: {
-        added: event.added.map(workspaceShortHand),
-        removed: event.removed.map(workspaceShortHand),
+    const onDidChangeWorkspaceFolders = vscode.workspace.onDidChangeWorkspaceFolders(async (event) => {
+      // Process added folders
+      for (const folder of event.added) {
+        const workspace = workspaceCollection.add(folder);
+        if (workspace) {
+          notifiedWorkspaces.add(workspace.path);
+        }
+      }
+
+      // Process removed folders
+      for (const folder of event.removed) {
+        const workspace = workspaceCollection.get(folder);
+        if (workspace) {
+          workspaceCollection.remove(workspace);
+          notifiedWorkspaces.delete(workspace.path);
+        }
+      }
+
+      // Send notification to server using the new utilities
+      const changeEvent = WorkspaceFolderUtils.toChangeEvent(event);
+      client.sendNotification('workspace/didChangeWorkspaceFolders', {
+        event: changeEvent
+      });
+
+      winlog.info(`Workspace folders updated: +${event.added.length} -${event.removed.length}`);
+
+      // Update VSCode workspace folders if enabled
+      if (config.enableWorkspaceFolders) {
+        const currentFolders = vscode.workspace.workspaceFolders || [];
+        vscode.workspace.updateWorkspaceFolders(
+          0,
+          Math.max(currentFolders.length - 1, 1),
+          ...allIndexedWorkspaces.filter(ws => workspaceCollection.getAll().some(w => ws.equals(w))),
+        );
       }
     });
-    msg.info(`Workspace folders updated: ${event.added.map(folder => folder.name).join(', ')}`);
-    msg.info(`Workspace folders updated: ${event.removed.map(folder => folder.name).join(', ')}`);
 
-    if (workspaceFoldersEnabled) {
-      vscode.workspace.updateWorkspaceFolders(
-        0,
-        vscode.workspace.workspaceFolders?.length || 0,
-        ...Array.from(notifiedWorkspaces).map(fsPath => {
-          const uri = Uri.file(fsPath);
-          return {
-            uri: uri,
-            name: require('path').basename(fsPath),
-          } as vscode.WorkspaceFolder;
-        })
-      );
-    }
-  });
-  /**
-   * Start the language client 
-   */
-  client.start();
+    // Start the language client 
+    await client.start();
 
-  console.log('folders', client.initializeResult?.capabilities.workspace?.workspaceFolders);
+    console.log('Server workspace capabilities:', client.initializeResult?.capabilities.workspace?.workspaceFolders);
 
-  // Register commands
-  context.subscriptions.push(
-    client,
-    onDidOpenTextDocument,
-    onDidChangeTextDocument,
-    onDidChangeActiveTextEditor,
-    onDidChangeWorkspaceFolders,
-  );
-  setFishLspCommands(context, client, serverPath, msg);
+    // Register commands and event handlers
+    context.subscriptions.push(
+      client,
+      onDidOpenTextDocument,
+      onDidChangeTextDocument,
+      onDidChangeActiveTextEditor,
+      onDidChangeWorkspaceFolders,
+    );
+
+    setFishLspCommands(context, client, serverPath);
+
+    winlog.info('Fish LSP extension activated successfully', { override: true });
+
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    winlog.error(`Failed to activate Fish LSP extension: ${message}`, { override: true });
+    throw error;
+  }
 }
 
 export function deactivate(): Thenable<void> | undefined {
