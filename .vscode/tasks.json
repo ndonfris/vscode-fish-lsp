@@ -1,0 +1,61 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "compile",
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "options": {
+        "statusbar": {
+          "label": "$(gear~spin) Compiling..."
+        }
+      },
+      "problemMatcher": "$tsc"
+    },
+    {
+      "label": "Setup Test Environment",
+      "type": "shell",
+      "command": "fish",
+      "args": ["setup-test-workspace.fish"],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Watch Fish LSP Logs", 
+      "type": "shell",
+      "command": "tail",
+      "args": ["-f", "/tmp/fish-lsp-test.log"],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new"
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "isBackground": true
+    },
+    {
+      "label": "Clean Test Logs",
+      "type": "shell", 
+      "command": "rm",
+      "args": ["-f", "/tmp/fish-lsp-test.log"],
+      "group": "test"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import { PathUtils, TextDocumentUtils, UriUtils, WorkspaceFolderUtils } from './utils';
+import { config, getFishValue, PathUtils, TextDocumentUtils, UriUtils, WorkspaceFolderUtils } from './utils';
 
 export type WorkspaceInput = vscode.WorkspaceFolder | fs.PathLike | FishWorkspace | vscode.Uri | vscode.TextDocument;
 
@@ -338,3 +338,95 @@ const collection = new FishWorkspaceCollection();
 collection.add('/home/user/.config/fish');
 const containing = collection.findContaining('/home/user/.config/fish/config.fish');
 */
+export namespace Folders {
+
+  export function fromCurrentDocument(): {
+    document: vscode.TextDocument;
+    workspaceRoot: string | undefined;
+    fishWorkspace?: FishWorkspace;
+    workspaceFolder?: vscode.WorkspaceFolder;
+  } | undefined {
+    const currentDoc = vscode.window.activeTextEditor?.document;
+    if (!currentDoc) return undefined;
+
+    return {
+      document: currentDoc,
+      workspaceRoot: findWorkspaceRoot(currentDoc.uri.fsPath),
+      fishWorkspace: FishWorkspace.create(currentDoc),
+      workspaceFolder: vscode.workspace.getWorkspaceFolder(currentDoc.uri)
+    }
+  }
+
+  export function getVscodeFolders(): vscode.WorkspaceFolder[] {
+    return vscode.workspace.workspaceFolders?.map(w => w) || [];
+  }
+
+  export async function fromEnv(env: NodeJS.ProcessEnv) : Promise<string[]> {
+    const items = env['fish_lsp_all_indexed_paths']?.trim().split(' ') || ['__fish_config_dir', '__fish_data_dir'];
+    const result = await Promise.all(items.map(async (item) => {
+      const path = await getFishValue(item);
+      if (path && PathUtils.isDirectory(path)) {
+        return path;
+      }
+      return undefined;
+    }))
+    return result.filter((item): item is string => !!item && item?.trim() !== '');
+  }
+
+  export function allPaths(defaultPaths: string[]): string[] {
+    const result: string[] = [];
+    const openFolder = Folders.fromCurrentDocument();
+
+    if (openFolder?.fishWorkspace) {
+      result.push(openFolder.fishWorkspace.path);
+    }
+
+    const currentFolders = Folders.getVscodeFolders().map(folder => folder.uri.fsPath);
+    for (const folder of currentFolders) {
+      if (result.some(existing => existing === folder)) continue;
+      result.push(folder);
+    }
+
+    for (const folder of defaultPaths) {
+      if (result.some(existing => existing === folder)) continue;
+      result.push(folder);
+    }
+
+    return result.filter((item, index) => item && item.trim() !== '' && result.indexOf(item) === index);
+  }
+
+  export function allFishWorkspaces(defaultPaths: string[]): FishWorkspace[] {
+    const result: FishWorkspace[] = [];
+    const openFolder = Folders.fromCurrentDocument();
+
+    if (openFolder?.fishWorkspace) {
+      result.push(openFolder.fishWorkspace);
+    }
+
+    const currentFolders = Folders.getVscodeFolders();
+    for (const folder of currentFolders) {
+      const workspace = FishWorkspace.create(folder);
+      if (workspace && !result.some(existing => existing.equals(workspace))) {
+        result.push(workspace);
+      }
+    }
+
+    if (config.enableWorkspaceFolders) {
+      for (const folder of defaultPaths) {
+        const workspace = FishWorkspace.create(folder);
+        if (workspace && !result.some(existing => existing.equals(workspace))) {
+          result.push(workspace);
+        }
+      }
+    }
+
+    return result.reduce((acc: FishWorkspace[], workspace) => {
+      if (!workspace) return acc;
+      const curr = FishWorkspace.fromWorkspaceFolder(workspace);
+      if (!acc.some(ws => ws.equals(curr))) {
+        acc.push(curr);
+      }
+      return acc;
+    }, []).map((ws, index) => ws.withIndex(index));
+  }
+}

@@ -1,33 +1,36 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "args": [
-                "--extensionDevelopmentPath=${workspaceFolder}"
-            ],
-            "name": "Run Extension",
-            "outFiles": [
-                "${workspaceFolder}/out/**/*.js"
-            ],
-            "preLaunchTask": "npm: compile",
-            "request": "launch",
-            "type": "extensionHost"
-        },
-        {
-            "type": "node",
-            "request": "attach",
-            "name": "Attach to Server",
-            "port": 6009,
-            "restart": true,
-            "outFiles": [
-                "${workspaceFolder}/out/**/*.js"
-            ]
-        }
-    ], 
-    "compounds": [
-        {
-            "name": "Extension + Server",
-            "configurations": ["Run Extension", "Attach to Server"]
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Extension",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--disable-extensions"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
+      ],
+      "preLaunchTask": "npm: compile",
+      "request": "launch",
+      "type": "extensionHost",
+      "internalConsoleOptions": "openOnSessionStart",
+      "trace": true
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Attach to Server",
+      "port": 6009,
+      "restart": true,
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
+      ]
+    }
+  ], 
+  "compounds": [
+    {
+      "name": "Extension + Server",
+      "configurations": ["Run Extension", "Attach to Server"]
+    }
+  ]
 }

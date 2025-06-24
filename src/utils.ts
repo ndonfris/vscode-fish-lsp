@@ -327,10 +327,11 @@ export namespace TextDocumentUtils {
         workspaces.add(newFolder);
       }
     }
+    // questionable addition to global workspace folders
     if (newFolder && config.enableWorkspaceFolders && !vscode.workspace.getWorkspaceFolder(doc.uri)) {
       vscode.workspace.updateWorkspaceFolders(
         0,
-        0,
+        1,
         newFolder?.toVSCodeWorkspaceFolder()
       );
     }
