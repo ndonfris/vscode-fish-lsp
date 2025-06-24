@@ -188,3 +188,13 @@ export const onDidChangeActiveTextEditor = vscode.window.onDidChangeActiveTextEd
   }
 });
 
+export function setupFishLspEventHandlers(context: vscode.ExtensionContext): void {
+  // Register the handlers
+  context.subscriptions.push(
+    onDidOpenTextDocument,
+    onDidChangeWorkspaceFolders,
+    onDidChangeActiveTextEditor
+  );
+
+  winlog.info('Handlers for Fish LSP initialized.');
+}

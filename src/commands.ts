@@ -2,13 +2,12 @@ import fs from 'fs';
 import { homedir } from 'os';
 import path from 'path';
 import * as vscode from 'vscode';
-import { LanguageClient } from 'vscode-languageclient/node';
-import { fishPath } from './extension';
+import { client, fishPath, serverPath } from './extension';
 import { winlog, execFileAsync } from './utils';
 
 const { commands, Uri, window, workspace } = vscode;
 
-export function setFishLspCommands(context: vscode.ExtensionContext, client: LanguageClient, serverPath: string) {
+export function setupFishLspCommands(context: vscode.ExtensionContext) {
   context.subscriptions.push(
 
     commands.registerCommand('fish-lsp.restart', async () => {
@@ -423,4 +422,6 @@ export function setFishLspCommands(context: vscode.ExtensionContext, client: Lan
       return await commands.executeCommand('fish-lsp.updateWorkspace', filepath) ;
     })
   );
+
+  winlog.info('Fish LSP commands registered');
 }

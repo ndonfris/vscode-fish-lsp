@@ -4,7 +4,7 @@ import { ExtensionContext } from 'vscode';
 /**
  * ~/.vscode/extensions/fish-lsp-.../node_modules/fish-lsp/bin/fish-lsp
  */
-function extensionFishLspPath(context: ExtensionContext): string {
+export function extensionFishLspPath(context: ExtensionContext): string {
   return PathUtils.join(
     context.extensionPath,
     'node_modules',

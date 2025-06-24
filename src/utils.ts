@@ -4,6 +4,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import * as vscode from 'vscode';
 import { FishWorkspace, FishWorkspaceCollection } from './workspace';
+import { fishPath } from './extension';
 
 type TraceLevel = 'off' | 'messages' | 'verbose';
 
@@ -127,6 +128,30 @@ export async function getFishEnvironment(fishPath: string = 'fish'): Promise<typ
     return process.env;
   }
 }
+/**
+ * Global environment variables, initialized from the fish shell, inside the extension,
+ * from the function `initializeFishEnvironment()`. The new values set from fish shell
+ * are merged with the existing `process.env` variables, inside the function 
+ * `getFishEnvironment()`. Use `env` as the global environment variable object.
+ *
+ * Note: We use a singleton instead of the default `process.env` to allow for reading
+ *       fish's autoloaded environment variables, which are not available in the Node.js.
+ *       An example autoloaded environment variable would be `__fish_data_dir`, which
+ *       the user could use in their `$fish_lsp_all_indexed_workspaces` definition.
+ */
+export let env = process.env;
+/**
+ * Call this in 
+ */
+export const initializeFishEnvironment = async () => {
+  try {
+    env = await getFishEnvironment(fishPath);
+    winlog.info(`Initialized fish environment with ${Object.keys(env).length} variables.`);
+  } catch (error) {
+    winlog.error(`Failed to initialize fish environment: ${error}`);
+  }
+}
+
 export async function getFishValue(
   key: string,
   fishPath: string = 'fish',

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import { config, getFishValue, PathUtils, TextDocumentUtils, UriUtils, WorkspaceFolderUtils } from './utils';
+import { config, env, getFishValue, PathUtils, TextDocumentUtils, UriUtils, WorkspaceFolderUtils } from './utils';
 
 export type WorkspaceInput = vscode.WorkspaceFolder | fs.PathLike | FishWorkspace | vscode.Uri | vscode.TextDocument;
 
@@ -354,14 +354,14 @@ export namespace Folders {
       workspaceRoot: findWorkspaceRoot(currentDoc.uri.fsPath),
       fishWorkspace: FishWorkspace.create(currentDoc),
       workspaceFolder: vscode.workspace.getWorkspaceFolder(currentDoc.uri)
-    }
+    };
   }
 
   export function getVscodeFolders(): vscode.WorkspaceFolder[] {
     return vscode.workspace.workspaceFolders?.map(w => w) || [];
   }
 
-  export async function fromEnv(env: NodeJS.ProcessEnv) : Promise<string[]> {
+  export async function fromEnv(env: NodeJS.ProcessEnv): Promise<string[]> {
     const items = env['fish_lsp_all_indexed_paths']?.trim().split(' ') || ['__fish_config_dir', '__fish_data_dir'];
     const result = await Promise.all(items.map(async (item) => {
       const path = await getFishValue(item);
@@ -369,7 +369,7 @@ export namespace Folders {
         return path;
       }
       return undefined;
-    }))
+    }));
     return result.filter((item): item is string => !!item && item?.trim() !== '');
   }
 
@@ -429,4 +429,44 @@ export namespace Folders {
       return acc;
     }, []).map((ws, index) => ws.withIndex(index));
   }
+
+  export async function all() {
+    const defaultPaths = await Folders.fromEnv(env);
+
+    const workspaces = Folders.allFishWorkspaces(defaultPaths);
+    const vscodeFolders = Folders.getVscodeFolders();
+    const defaults: FishWorkspace[] = config.enableWorkspaceFolders
+      ? defaultPaths.map(path => FishWorkspace.create(path)).filter((ws): ws is FishWorkspace => !!ws)
+      : [];
+
+    return {
+      fish: {
+        uris: () => workspaces.map(ws => ws.uri),
+        paths: () => workspaces.map(ws => ws.path),
+        workspaces: () => workspaces,
+        folders: () => workspaces.map(ws => ws.toVSCodeWorkspaceFolder()),
+        serverFolders: () => workspaces.map(ws => ws.toServerWorkspace()),
+      },
+      vscode: {
+        uris: () => vscodeFolders.map(folder => folder.uri),
+        paths: () => vscodeFolders.map(folder => folder.uri.fsPath),
+        workspaces: () => vscodeFolders,
+        folders: () => vscodeFolders,
+        serverFolders: () => vscodeFolders.map(folder => ({
+          name: folder.name,
+          uri: folder.uri.toString()
+        })),
+      },
+      defaultFolders: {
+        uris: () => defaults.map(ws => ws.uri),
+        paths: () => defaults.map(ws => ws.path),
+        workspaces: () => defaults,
+        folders: () => defaults.map(ws => ws.toVSCodeWorkspaceFolder()),
+        serverFolders: () => defaults.map(ws => ws.toServerWorkspace()),
+      },
+      all: () => workspaces,
+    };
+
+  }
+
 }
