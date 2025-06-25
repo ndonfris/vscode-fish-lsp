@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import { LanguageClient, LanguageClientOptions, RevealOutputChannelOn, Trace } from 'vscode-languageclient/node';
 import { getCommandFilePath, getServerPath } from './server';
-import { FishWorkspaceCollection, Folders } from './workspace';
+import { FishWorkspace, FishWorkspaceCollection, Folders, WorkspaceUtils } from './workspace';
 import { setupFishLspCommands } from './commands';
-import { winlog, config, PathUtils, initializeFishEnvironment, env } from './utils';
-import { setupFishLspEventHandlers } from './handlers';
+import { winlog, config, PathUtils, initializeFishEnvironment, env, TextDocumentUtils } from './utils';
+import { onDidChangeActiveTextEditor, sendDidOpenNotification, setupFishLspEventHandlers } from './handlers';
 
 /********************************************************************
  *                                                                  *
@@ -78,10 +78,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
     const initializationOptions = {
       fishPath,
-      rootUri: openDocument?.uri.toString(),
+      rootUri: workspaceCollection.get(openDocument?.uri || '')?.uri,
       rootPath: workspaceCollection.get(openDocument?.uri || '')?.path,
       workspaceFolders: folders.vscode.serverFolders(),
-      fish_lsp_all_indexed_paths: folders.fish.paths(),
+      // fish_lsp_all_indexed_paths: folders.fish.paths(),
     };
 
     console.log('Fish LSP Initialization Options:', JSON.stringify(initializationOptions, null, 2));
@@ -117,17 +117,24 @@ export async function activate(context: vscode.ExtensionContext) {
     client.setTrace(Trace.fromString(config.trace));
 
     // Start the language client 
+
+    await client.stop();
     await client.start();
 
     // Make sure the client is registered in the context
-    context.subscriptions.push(client);
+    context.subscriptions.push(
+      client,
+    );
 
     // Register client commands and event handlers
     setupFishLspEventHandlers(context);
     setupFishLspCommands(context);
-
+    console.log(context.subscriptions.length);
     // Show the status of the extension
     winlog.info('Fish LSP extension activated successfully', { override: true });
+
+    await vscode.commands.executeCommand('fish-lsp.restart');
+    // openDocument && sendDidOpenNotification(openDocument);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     winlog.error(`Failed to activate Fish LSP extension: ${message}`, { override: true });

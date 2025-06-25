@@ -8,6 +8,20 @@ import { winlog, execFileAsync } from './utils';
 const { commands, Uri, window, workspace } = vscode;
 
 export function setupFishLspCommands(context: vscode.ExtensionContext) {
+  //
+  // Add the default server command's to the command palette
+  // vscode.commands.getCommands().then((commandsList) => {
+  //   commandsList.forEach((command) => {
+  //     context.subscriptions.push(
+  //       commands.registerCommand(command, async (...args: any[]) => {
+  //         winlog.info(`Command registered: ${command}`, { override: true });
+  //         await commands.executeCommand(command, args);
+  //       })
+  //     );
+  //   });
+  // });
+
+  // Register custom client side commands for Fish LSP
   context.subscriptions.push(
 
     commands.registerCommand('fish-lsp.restart', async () => {
@@ -403,7 +417,7 @@ export function setupFishLspCommands(context: vscode.ExtensionContext) {
         return;
       }
 
-      return await commands.executeCommand('fish-lsp.showWorkspaceMessage') ;
+      return await commands.executeCommand('fish-lsp.showWorkspaceMessage');
 
     }),
 
@@ -419,8 +433,9 @@ export function setupFishLspCommands(context: vscode.ExtensionContext) {
       winlog.info('RUNNING COMMAND: fish-lsp.updateWorkspace', { override: true });
       winlog.info('Updating workspace for ' + filepath, { override: true });
 
-      return await commands.executeCommand('fish-lsp.updateWorkspace', filepath) ;
-    })
+      return await commands.executeCommand('fish-lsp.updateWorkspace', filepath);
+    }),
+
   );
 
   winlog.info('Fish LSP commands registered');

@@ -5,7 +5,8 @@
       "name": "Run Extension",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "--disable-extensions"
+        "--disable-extensions",
+        "~/repos/.dotfiles-main"
       ],
       "outFiles": [
         "${workspaceFolder}/out/**/*.js"
@@ -34,3 +35,4 @@
     }
   ]
 }
+  

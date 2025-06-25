@@ -41,7 +41,7 @@ function sendWorkspaceChangeNotification(workspaceUri: vscode.Uri): void {
   notifiedWorkspaces.add(workspaceUri.fsPath);
 }
 
-async function sendDidOpenNotification(document: vscode.TextDocument): Promise<void> {
+export async function sendDidOpenNotification(document: vscode.TextDocument): Promise<void> {
   // Don't send open notifications when the client is not initialized or the document is not a fish file
   if (!client || !client.isRunning() || !TextDocumentUtils.isFishDocument(document)) return;
 
@@ -168,7 +168,7 @@ export const onDidOpenTextDocument = vscode.workspace.onDidOpenTextDocument(
 
 export const onDidChangeWorkspaceFolders = vscode.workspace.onDidChangeWorkspaceFolders(
   (event: vscode.WorkspaceFoldersChangeEvent) => {
-    if (!client || !client.isRunning()) {
+    if (!client || !client.start()) {
       winlog.warn('Language client is not running, cannot send workspace folder change notification.');
       return;
     }
@@ -199,7 +199,7 @@ export function setupFishLspEventHandlers(context: vscode.ExtensionContext): voi
   context.subscriptions.push(
     onDidOpenTextDocument,
     onDidChangeWorkspaceFolders,
-    onDidChangeActiveTextEditor
+    // onDidChangeActiveTextEditor
   );
 
   winlog.info('Handlers for Fish LSP initialized.');
