@@ -15,7 +15,11 @@ import {
 
 function sendWorkspaceChangeNotification(workspaceUri: vscode.Uri): void {
   winlog.info(`Sending workspace change notification for: ${workspaceUri.fsPath}`);
-  if (!client || notifiedWorkspaces.has(workspaceUri.fsPath)) {
+  if (!client || !client.isRunning()) {
+    winlog.warn('Language client is not running, cannot send workspace change notification.');
+    return;
+  }
+  if (notifiedWorkspaces.has(workspaceUri.fsPath)) {
     winlog.info(`Workspace already notified: ${workspaceUri.fsPath}`);
     return;
   }
@@ -39,7 +43,7 @@ function sendWorkspaceChangeNotification(workspaceUri: vscode.Uri): void {
 
 async function sendDidOpenNotification(document: vscode.TextDocument): Promise<void> {
   // Don't send open notifications when the client is not initialized or the document is not a fish file
-  if (!client || !TextDocumentUtils.isFishDocument(document)) return;
+  if (!client || !client.isRunning() || !TextDocumentUtils.isFishDocument(document)) return;
 
   vscode.commands.executeCommand('fish-lsp.update.currentWorkspace');
 
@@ -93,13 +97,11 @@ export const onDidOpenTextDocument = vscode.workspace.onDidOpenTextDocument(
   async (document: vscode.TextDocument) => {
     if (!client || !client.isRunning()) {
       winlog.warn('Language client is not running, stopping and restarting client.');
-      await client.stop();
-      await client.start();
+      return;
     }
     if (!TextDocumentUtils.isFishDocument(document)) return;
 
     // Find which workspace this document belongs to
-    // const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
     const fishWorkspace = FishWorkspace.create(document);
 
 
@@ -166,6 +168,10 @@ export const onDidOpenTextDocument = vscode.workspace.onDidOpenTextDocument(
 
 export const onDidChangeWorkspaceFolders = vscode.workspace.onDidChangeWorkspaceFolders(
   (event: vscode.WorkspaceFoldersChangeEvent) => {
+    if (!client || !client.isRunning()) {
+      winlog.warn('Language client is not running, cannot send workspace folder change notification.');
+      return;
+    }
     // Send notification to language server
     client.sendNotification('workspace/didChangeWorkspaceFolders', {
       event: {

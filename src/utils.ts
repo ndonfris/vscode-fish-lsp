@@ -353,13 +353,13 @@ export namespace TextDocumentUtils {
       }
     }
     // questionable addition to global workspace folders
-    if (newFolder && config.enableWorkspaceFolders && !vscode.workspace.getWorkspaceFolder(doc.uri)) {
-      vscode.workspace.updateWorkspaceFolders(
-        0,
-        1,
-        newFolder?.toVSCodeWorkspaceFolder()
-      );
-    }
+    // if (newFolder && config.enableWorkspaceFolders && !vscode.workspace.getWorkspaceFolder(doc.uri)) {
+    //   vscode.workspace.updateWorkspaceFolders(
+    //     0,
+    //     1,
+    //     newFolder?.toVSCodeWorkspaceFolder()
+    //   );
+    // }
     return newFolder;
   }
 }

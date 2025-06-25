@@ -30,9 +30,6 @@ end' > $test_workspace_dir/conf.d/test.fish
 # Create VSCode workspace settings
 echo '{
   "folders": [
-    {
-      "path": "$HOME/repos/.dotfiles-main"
-    }
   ],
   "settings": {
     "fish-lsp.trace.server": "verbose",
