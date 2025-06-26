@@ -130,7 +130,7 @@
         },
         "fish-lsp.enableWorkspaceFolders": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "Enable the fish-lsp VSCode extension to add new WorkspaceFolders when the server opens a fish document in another fish workspace. Without this setting enabled, going to definitions outside of the current workspace will not index any new workspaces. Enabling this setting will automatically index new workspaces, and add them to the current VSCode workspace."
         }
       }

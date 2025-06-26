@@ -13,6 +13,17 @@ import {
   WorkspaceFolder,
 } from 'vscode-languageclient';
 
+/**
+ * Functions to send notifications to the language server, when an event occurs on the
+ * server. Essentially, this injects extra functionality into the client implementation
+ * by performing additional actions when certain events occur (typically when dealing with
+ * opening or changing documents).
+ *
+ * Exported functions are used as middleware.
+ */
+
+
+// Utility function to send a workspace change notification
 function sendWorkspaceChangeNotification(workspaceUri: vscode.Uri): void {
   winlog.info(`Sending workspace change notification for: ${workspaceUri.fsPath}`);
   if (!client || !client.isRunning()) {
@@ -188,18 +199,11 @@ export const onDidChangeWorkspaceFolders = vscode.workspace.onDidChangeWorkspace
   }
 );
 
-export const onDidChangeActiveTextEditor = vscode.window.onDidChangeActiveTextEditor((editor) => {
-  if (editor?.document && TextDocumentUtils.isFishDocument(editor.document)) {
-    sendDidOpenNotification(editor.document);
-  }
-});
-
 export function setupFishLspEventHandlers(context: vscode.ExtensionContext): void {
   // Register the handlers
   context.subscriptions.push(
     onDidOpenTextDocument,
     onDidChangeWorkspaceFolders,
-    // onDidChangeActiveTextEditor
   );
 
   winlog.info('Handlers for Fish LSP initialized.');

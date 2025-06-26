@@ -1,25 +1,16 @@
-import fs from 'fs';
-import { homedir } from 'os';
-import path from 'path';
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
+import { homedir } from 'os';
 import { client, fishPath, serverPath } from './extension';
 import { winlog, execFileAsync } from './utils';
+import { commands, Uri, window, workspace } from 'vscode';
 
-const { commands, Uri, window, workspace } = vscode;
-
+/**
+ * Register commands to execute in the client extension, 
+ * such as restarting the server, or updating the current workspace.
+ */
 export function setupFishLspCommands(context: vscode.ExtensionContext) {
-  //
-  // Add the default server command's to the command palette
-  // vscode.commands.getCommands().then((commandsList) => {
-  //   commandsList.forEach((command) => {
-  //     context.subscriptions.push(
-  //       commands.registerCommand(command, async (...args: any[]) => {
-  //         winlog.info(`Command registered: ${command}`, { override: true });
-  //         await commands.executeCommand(command, args);
-  //       })
-  //     );
-  //   });
-  // });
 
   // Register custom client side commands for Fish LSP
   context.subscriptions.push(
@@ -225,7 +216,6 @@ export function setupFishLspCommands(context: vscode.ExtensionContext) {
         outputChannel.show();
       }
     }),
-
 
     commands.registerCommand('fish-lsp.evalFile', async () => {
       const activeEditor = window.activeTextEditor;

@@ -3,7 +3,7 @@ import * as path from 'path';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import * as vscode from 'vscode';
-import { FishWorkspace, FishWorkspaceCollection } from './workspace';
+import { FishWorkspace } from './workspace';
 import { fishPath } from './extension';
 
 type TraceLevel = 'off' | 'messages' | 'verbose';
@@ -28,7 +28,7 @@ const parseConfig = (): FishLspConfig => {
     useGlobalExecutable: config.get('useGlobalExecutable', false),
     executablePath: config.get('executablePath', ''),
     workspaceFolders: config.get('workspaceFolders', []),
-    enableWorkspaceFolders: config.get('enableWorkspaceFolders', false)
+    enableWorkspaceFolders: config.get('enableWorkspaceFolders', true)
   } as FishLspConfig;
 };
 
@@ -69,14 +69,32 @@ function windowShowMessage(_window: typeof vscode.window, loggingVerbosity: Trac
     }
   };
 
+  /**
+   * Determine if the message should be shown based on the logging verbosity level, and
+   * the type of window message requested.
+   */
+  const getShouldShow = (
+    loggingVerbosity: TraceLevel,
+    type: LogType,
+    opts: {override: boolean;} = { override: false }
+  ) => {
+    if (opts.override && ['info', 'error'].includes(type)) return true;
+    if (loggingVerbosity === 'off') return false;
+    if (loggingVerbosity === 'messages' && !['info', 'error'].includes(type)) return true;
+    if (loggingVerbosity === 'verbose') return true;
+    return false;
+  };
+
+  // Wrapper function to show the information message in the client window, if the
+  // logging verbosity allows it.
   const showWindow = (type: LogType, t: string, opts: Partial<MessageOpts> = defaultOpts) => {
-    if (!opts.override && loggingVerbosity === 'off') return;
+    const shouldShow = getShouldShow(loggingVerbosity, type);
+    // skip showing the message if the verbosity level does not allow it
+    if (!shouldShow) return;
+    // Build the window message/notification parameters
     const showFn = getWindowCallback(type);
-    if (opts.modal) {
-      showFn(t, { modal: true });
-    } else {
-      showFn(t);
-    }
+    const showArgs = opts?.modal ? { modal: opts?.modal } : {};
+    showFn(t, showArgs);
   };
 
   return {
@@ -150,7 +168,7 @@ export const initializeFishEnvironment = async () => {
   } catch (error) {
     winlog.error(`Failed to initialize fish environment: ${error}`);
   }
-}
+};
 
 export async function getFishValue(
   key: string,
@@ -324,44 +342,6 @@ export namespace TextDocumentUtils {
       && PathUtils.exists(doc.uri.fsPath)
       && PathUtils.isFile(doc.uri.fsPath);
   };
-
-  export function getInitialFishWorkspaceFolder(
-    workspaces: FishWorkspaceCollection,
-    doc?: vscode.TextDocument,
-  ) {
-    if (!doc || !TextDocumentUtils.isExistingFishDocument(doc)) {
-      return undefined;
-    }
-    // add document's parent directory as a subworkspace
-    const subworkspace = FishWorkspace.create(doc.uri)
-    if (subworkspace && !workspaces.has(subworkspace.uri)) {
-      workspaces.add(subworkspace);
-    }
-
-    // Get the workspace folder for the document
-    const workspaceFolder = vscode.workspace.getWorkspaceFolder(doc.uri);
-    let newFolder: FishWorkspace | undefined;
-    if (WorkspaceFolderUtils.is(workspaceFolder)) {
-      newFolder = FishWorkspace.fromWorkspaceFolder(workspaceFolder);
-      if (!workspaces.has(workspaceFolder.uri) && config.enableWorkspaceFolders) {
-        workspaces.add(newFolder);
-      }
-    } else {
-      newFolder = FishWorkspace.create(doc.uri.fsPath);
-      if (newFolder && !workspaces.has(newFolder.uri) && config.enableWorkspaceFolders) {
-        workspaces.add(newFolder);
-      }
-    }
-    // questionable addition to global workspace folders
-    // if (newFolder && config.enableWorkspaceFolders && !vscode.workspace.getWorkspaceFolder(doc.uri)) {
-    //   vscode.workspace.updateWorkspaceFolders(
-    //     0,
-    //     1,
-    //     newFolder?.toVSCodeWorkspaceFolder()
-    //   );
-    // }
-    return newFolder;
-  }
 }
 
 /**
@@ -412,6 +392,6 @@ export namespace WorkspaceFolderUtils {
 
   export const getVSCodeWorkspaceFolders = () => {
     return vscode.workspace.workspaceFolders?.map(folder => folder) || [];
-  }
+  };
 }
 
