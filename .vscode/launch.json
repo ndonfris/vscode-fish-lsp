@@ -6,7 +6,6 @@
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
         "--disable-extensions",
-        "~/repos/.dotfiles-main"
       ],
       "outFiles": [
         "${workspaceFolder}/out/**/*.js"
