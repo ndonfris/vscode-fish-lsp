@@ -411,19 +411,23 @@ export function setupFishLspCommands(context: vscode.ExtensionContext) {
 
     }),
 
-    commands.registerCommand('fish-lsp.update.currentWorkspace', async () => {
+    commands.registerCommand('fish-lsp.update.currentWorkspace', async (...args: string[]) => {
       const activeEditor = window.activeTextEditor;
+
+      const hasSilence = args.some(arg => arg === '--quiet' || arg === '-q');
+      const override = hasSilence ? false : true;
+
       if (!activeEditor) {
-        winlog.info('No active editor', { override: true });
+        winlog.info('No active editor', { override });
         return;
       }
 
       const filepath = activeEditor.document.uri.fsPath;
 
-      winlog.info('RUNNING COMMAND: fish-lsp.updateWorkspace', { override: true });
-      winlog.info('Updating workspace for ' + filepath, { override: true });
+      winlog.info('RUNNING COMMAND: fish-lsp.updateWorkspace', { override });
+      winlog.info('Updating workspace for ' + filepath, { override });
 
-      return await commands.executeCommand('fish-lsp.updateWorkspace', filepath);
+      return await commands.executeCommand('fish-lsp.updateWorkspace', filepath, ...args);
     }),
 
   );

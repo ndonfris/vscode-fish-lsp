@@ -120,6 +120,17 @@ function windowShowMessage(_window: typeof vscode.window, loggingVerbosity: Trac
     }
   } as WindowLogger;
 }
+export function getSilenceFishLspUpdateWorkspaceParam(): '--quiet' | undefined {
+  switch (config.trace) {
+    case 'verbose':
+    case 'messages':
+        return undefined; // If logging is verbose or messages, we don't want to update the workspace
+    case 'off':
+    default:
+      return '--quiet';
+  }
+}
+
 
 // Export window logging wrapper, to include the logs in the extension output channel,
 // if the extension trace level is set to 'verbose' or 'messages'. Otherwise, forward

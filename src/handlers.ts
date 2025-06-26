@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { client, notifiedWorkspaces, workspaceCollection } from './extension';
-import { PathUtils, TextDocumentUtils, winlog } from './utils';
+import { getSilenceFishLspUpdateWorkspaceParam, PathUtils, TextDocumentUtils, winlog } from './utils';
 import { FishWorkspace, WorkspaceUtils } from './workspace';
 import {
   DidChangeTextDocumentNotification,
@@ -13,15 +13,14 @@ import {
   WorkspaceFolder,
 } from 'vscode-languageclient';
 
-/**
- * Functions to send notifications to the language server, when an event occurs on the
- * server. Essentially, this injects extra functionality into the client implementation
- * by performing additional actions when certain events occur (typically when dealing with
- * opening or changing documents).
- *
- * Exported functions are used as middleware.
- */
-
+/****************************************************************************************
+ * Functions to send notifications to the language server, when an event occurs on the  *
+ * server. Essentially, this injects extra functionality into the client implementation *
+ * by performing additional actions when certain events occur (typically when dealing   *
+ * with opening or changing documents).                                                 *
+ *                                                                                      *
+ * Exported functions are used as middleware.                                           *
+ ****************************************************************************************/
 
 // Utility function to send a workspace change notification
 function sendWorkspaceChangeNotification(workspaceUri: vscode.Uri): void {
@@ -56,7 +55,9 @@ export async function sendDidOpenNotification(document: vscode.TextDocument): Pr
   // Don't send open notifications when the client is not initialized or the document is not a fish file
   if (!client || !client.isRunning() || !TextDocumentUtils.isFishDocument(document)) return;
 
-  vscode.commands.executeCommand('fish-lsp.update.currentWorkspace');
+  // Should display the logging information, when the verbosity is set >= 'messages'
+  const updateParams = getSilenceFishLspUpdateWorkspaceParam();
+  vscode.commands.executeCommand('fish-lsp.update.currentWorkspace', updateParams);
 
   // Check if this document is in a new fish workspace using the new utilities
   const workspaceRootPath = WorkspaceUtils.findWorkspaceRoot(document.uri.fsPath);
@@ -65,7 +66,7 @@ export async function sendDidOpenNotification(document: vscode.TextDocument): Pr
     sendWorkspaceChangeNotification(workspaceUri);
   }
 
-  vscode.commands.executeCommand('fish-lsp.updateWorkspace', document.uri.fsPath);
+  vscode.commands.executeCommand('fish-lsp.updateWorkspace', document.uri.fsPath, updateParams);
 
   // Send the didOpen notification 
   const textDocumentItem: TextDocumentItem = {
@@ -172,7 +173,8 @@ export const onDidOpenTextDocument = vscode.workspace.onDidOpenTextDocument(
     });
     winlog.log(`Sent workspace/didChangeWorkspaceFolders notification for ${document.uri.toString()}`);
 
-    await vscode.commands.executeCommand('fish-lsp.updateWorkspace', document.uri.fsPath);
+    const updateParams = getSilenceFishLspUpdateWorkspaceParam();
+    await vscode.commands.executeCommand('fish-lsp.updateWorkspace', document.uri.fsPath, updateParams);
     winlog.log(`Executed fish-lsp.updateWorkspace command for ${document.uri.toString()}`);
   }
 );
@@ -199,6 +201,17 @@ export const onDidChangeWorkspaceFolders = vscode.workspace.onDidChangeWorkspace
   }
 );
 
+/**
+ * Register the ("middleware") event handlers for the fish-lsp extension, to update
+ * the server when a document is opened or when a workspace folder changes.
+ *
+ * NOTE: context will contain the listeners/handlers, which is an intended 
+ *       side effect of this function. Call the `setupFishLspCommands` function
+ *       inside the client's `activate` function to register the commands.
+ *
+ * @param context - The extension context provided by VS Code.
+ * @return void
+ */
 export function setupFishLspEventHandlers(context: vscode.ExtensionContext): void {
   // Register the handlers
   context.subscriptions.push(
