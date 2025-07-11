@@ -10,7 +10,7 @@
       "outFiles": [
         "${workspaceFolder}/out/**/*.js"
       ],
-      "preLaunchTask": "npm: compile",
+      "preLaunchTask": "compile",
       "request": "launch",
       "type": "extensionHost",
       "internalConsoleOptions": "openOnSessionStart",

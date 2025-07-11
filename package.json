@@ -276,10 +276,6 @@
     "lint": "eslint src --fix",
     "debug:extension": "code --extensionDevelopmentPath=. ./test-workspace",
     "debug:extension:only": "code --extensionDevelopmentPath=. --disable-extensions ./test-workspace",
-    "debug:extension:isolated": "fish test-extension-isolation.fish isolated",
-    "debug:logs": "tail -f /tmp/fish-lsp-test-*.log",
-    "debug:processes": "fish monitor-fish-lsp-processes.fish",
-    "debug:processes:watch": "fish monitor-fish-lsp-processes.fish watch",
     "clean": "rimraf out yarn.lock package-lock.json node_modules",
     "clean:packs": "rimraf *.tgz *.vsix",
     "install:unlink": "yarn unlink fish-lsp 2>/dev/null || true && yarn add fish-lsp@latest",
@@ -315,7 +311,7 @@
     "restoreMocks": false
   },
   "dependencies": {
-    "fish-lsp": "^1.0.9-1",
+    "fish-lsp": "^1.0.10-nightly-v4",
     "vscode-languageclient": "9.0.1"
   },
   "devDependencies": {
