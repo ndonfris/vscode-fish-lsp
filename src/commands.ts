@@ -1,25 +1,32 @@
-import fs from 'fs';
+import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
 import { homedir } from 'os';
-import path from 'path';
-import { commands, ExtensionContext, Uri, window, workspace } from 'vscode';
-import { LanguageClient } from 'vscode-languageclient/node';
-import { fishPath } from './extension';
-import { ShowMessage, execFileAsync } from './utils';
+import { client, fishPath, serverPath } from './extension';
+import { winlog, execFileAsync } from './utils';
+import { commands, Uri, window, workspace } from 'vscode';
 
-export function setFishLspCommands(context: ExtensionContext, client: LanguageClient, serverPath: string, msg: ShowMessage) {
+/**
+ * Register commands to execute in the client extension, 
+ * such as restarting the server, or updating the current workspace.
+ */
+export function setupFishLspCommands(context: vscode.ExtensionContext) {
+
+  // Register custom client side commands for Fish LSP
   context.subscriptions.push(
+
     commands.registerCommand('fish-lsp.restart', async () => {
       if (client) {
         await client.stop();
         await client.start();
-        msg.info('Fish LSP has been restarted');
+        winlog.info('Fish LSP has been restarted');
       }
     }),
 
     commands.registerCommand('fish-lsp.env', async () => {
       const activeEditor = window.activeTextEditor;
       if (!activeEditor) {
-        msg.info('No active editor', { override: true });
+        winlog.info('No active editor', { override: true });
         return;
       }
       const outputChannel = window.createOutputChannel('fish-lsp env --show');
@@ -50,7 +57,7 @@ export function setFishLspCommands(context: ExtensionContext, client: LanguageCl
     commands.registerCommand('fish-lsp.env.show', async () => {
       const activeEditor = window.activeTextEditor;
       if (!activeEditor) {
-        msg.info('No active editor', { override: true });
+        winlog.info('No active editor', { override: true });
         return;
       }
       const outputChannel = window.createOutputChannel('fish-lsp env --show');
@@ -86,14 +93,14 @@ export function setFishLspCommands(context: ExtensionContext, client: LanguageCl
         outputChannel.append(stdout);
         outputChannel.show();
       } catch (error) {
-        msg.error(`Failed to get fish-lsp environment: ${error}`);
+        winlog.error(`Failed to get fish-lsp environment: ${error}`);
       }
     }),
 
     commands.registerCommand('fish-lsp.env.show-defaults', async () => {
       const activeEditor = window.activeTextEditor;
       if (!activeEditor) {
-        msg.info('No active editor', { override: true });
+        winlog.info('No active editor', { override: true });
         return;
       }
 
@@ -130,7 +137,7 @@ export function setFishLspCommands(context: ExtensionContext, client: LanguageCl
         outputChannel.append(stdout);
         outputChannel.show();
       } catch (error) {
-        msg.error(`Failed to get fish-lsp info: ${error}`);
+        winlog.error(`Failed to get fish-lsp info: ${error}`);
       }
     }),
 
@@ -144,11 +151,11 @@ export function setFishLspCommands(context: ExtensionContext, client: LanguageCl
         const { stdout } = await execFileAsync(serverPath, ['complete']);
         // Write completions to file
         await fs.promises.writeFile(completionsFile, stdout);
-        msg.info(
+        winlog.info(
           `Fish LSP completions generated at ${completionsFile}`
         );
       } catch (error) {
-        msg.error(
+        winlog.error(
           `Failed to generate fish-lsp completions: ${error}`
         );
       }
@@ -209,7 +216,6 @@ export function setFishLspCommands(context: ExtensionContext, client: LanguageCl
         outputChannel.show();
       }
     }),
-
 
     commands.registerCommand('fish-lsp.evalFile', async () => {
       const activeEditor = window.activeTextEditor;
@@ -272,7 +278,7 @@ export function setFishLspCommands(context: ExtensionContext, client: LanguageCl
         const logFilePath = stdout.trim();
 
         if (!logFilePath) {
-          msg.info('No log file path returned. Make sure fish_lsp_log_file is set.');
+          winlog.info('No log file path returned. Make sure fish_lsp_log_file is set.');
           return;
         }
 
@@ -281,16 +287,16 @@ export function setFishLspCommands(context: ExtensionContext, client: LanguageCl
         const doc = await workspace.openTextDocument(logUri);
         await window.showTextDocument(doc);
 
-        msg.info(`Opened log file: ${logFilePath}. Use Ctrl+End to go to bottom.`);
+        winlog.info(`Opened log file: ${logFilePath}. Use Ctrl+End to go to bottom.`);
       } catch (error) {
-        msg.error(`Failed to open fish-lsp log file: ${error}`);
+        winlog.error(`Failed to open fish-lsp log file: ${error}`);
       }
     }),
 
     commands.registerCommand('fish-lsp.showCheckHealth', async () => {
       const activeEditor = window.activeTextEditor;
       if (!activeEditor) {
-        msg.info('No active editor', { override: true });
+        winlog.info('No active editor', { override: true });
         return;
       }
 
@@ -323,7 +329,7 @@ export function setFishLspCommands(context: ExtensionContext, client: LanguageCl
     commands.registerCommand('fish-lsp.showCommandHelp', async () => {
       const activeEditor = window.activeTextEditor;
       if (!activeEditor) {
-        msg.info('No active editor', { override: true });
+        winlog.info('No active editor', { override: true });
         return;
       }
 
@@ -333,13 +339,13 @@ export function setFishLspCommands(context: ExtensionContext, client: LanguageCl
       // Get the word under cursor
       const wordRange = document.getWordRangeAtPosition(position);
       if (!wordRange) {
-        msg.info('No active editor', { override: true });
+        winlog.info('No active editor', { override: true });
         return;
       }
 
       const command = document.getText(wordRange);
       if (!command.trim()) {
-        msg.info('No active editor', { override: true });
+        winlog.info('No active editor', { override: true });
         return;
       }
 
@@ -351,23 +357,23 @@ export function setFishLspCommands(context: ExtensionContext, client: LanguageCl
           await fs.promises.writeFile(`/tmp/fish-lsp/man/${command}.1`, stdout.toString().trim());
           const doc = await workspace.openTextDocument(Uri.file(`/tmp/fish-lsp/man/${command}.1`));
           await window.showTextDocument(doc);
-          msg.info(`Fish help for '${command}' displayed`, { override: true });
+          winlog.info(`Fish help for '${command}' displayed`, { override: true });
         }
       } catch (_) {
         // If man page doesn't exist, try fish's help
         try {
           const { stdout: fishHelp } = await execFileAsync(fishPath, ['-c', `help ${command}`]);
           if (fishHelp.toString().trim() === '' || !fishHelp) {
-            msg.info(`No help found for '${command}'`, { override: true });
+            winlog.info(`No help found for '${command}'`, { override: true });
             return;
           }
           await fs.promises.writeFile(`/tmp/fish-lsp/man/${command}.1`, fishHelp);
           const doc = await workspace.openTextDocument(Uri.file(`/tmp/fish-lsp/man/${command}.1`));
           await window.showTextDocument(doc);
-          msg.info(`Fish help for '${command}' displayed`, { override: true });
+          winlog.info(`Fish help for '${command}' displayed`, { override: true });
         } catch (_) {
           // window.showErrorMessage(`No manual page or fish help found for '${command}'`);
-          msg.error(`No manual page or fish help found for '${command}'`, { override: true });
+          winlog.error(`No manual page or fish help found for '${command}'`, { override: true });
         }
       }
     }),
@@ -389,9 +395,42 @@ export function setFishLspCommands(context: ExtensionContext, client: LanguageCl
       try {
         return await commands.executeCommand('fish-lsp.fixAll', filePath);
       } catch (error) {
-        msg.error(`Failed to run fix-all: ${error}`);
+        winlog.error(`Failed to run fix-all: ${error}`);
       }
       return undefined;
     }),
+
+    commands.registerCommand('fish-lsp.show.currentWorkspace', async () => {
+      const activeEditor = window.activeTextEditor;
+      if (!activeEditor) {
+        winlog.info('No active editor', { override: true });
+        return;
+      }
+
+      return await commands.executeCommand('fish-lsp.showWorkspaceMessage');
+
+    }),
+
+    commands.registerCommand('fish-lsp.update.currentWorkspace', async (...args: string[]) => {
+      const activeEditor = window.activeTextEditor;
+
+      const hasSilence = args.some(arg => arg === '--quiet' || arg === '-q');
+      const override = hasSilence ? false : true;
+
+      if (!activeEditor) {
+        winlog.info('No active editor', { override });
+        return;
+      }
+
+      const filepath = activeEditor.document.uri.fsPath;
+
+      winlog.info('RUNNING COMMAND: fish-lsp.updateWorkspace', { override });
+      winlog.info('Updating workspace for ' + filepath, { override });
+
+      return await commands.executeCommand('fish-lsp.updateWorkspace', filepath, ...args);
+    }),
+
   );
+
+  winlog.info('Fish LSP commands registered');
 }

@@ -1,212 +1,138 @@
-import * as fs from 'fs';
-import { workspace, ExtensionContext, window, Uri, WorkspaceFolder } from 'vscode';
-import { DidChangeWorkspaceFoldersNotification, DidOpenTextDocumentNotification, LanguageClient, LanguageClientOptions, ServerOptions, Trace } from 'vscode-languageclient/node';
+import * as vscode from 'vscode';
+import { LanguageClient, LanguageClientOptions, RevealOutputChannelOn, Trace } from 'vscode-languageclient/node';
 import { getCommandFilePath, getServerPath } from './server';
-import { FishClientWorkspace } from './workspace';
-import { setFishLspCommands } from './commands';
-import { execFileAsync, getFishEnvironment, showMessage, workspaceShortHand } from './utils';
+import { FishWorkspaceCollection, Folders } from './workspace';
+import { setupFishLspCommands } from './commands';
+import { winlog, config, PathUtils, initializeFishEnvironment, env } from './utils';
+import { setupFishLspEventHandlers } from './handlers';
 
-export let fishPath: string = 'fish'; // Default fish path
-export let client: LanguageClient;
+/********************************************************************
+ *                                                                  *
+ * This is the main entry point for the Fish LSP extension          *
+ *                                                                  *
+ * activate/deactivate functions are called by VS Code when         *
+ * the extension is activated or deactivated (on `fish` document's) *
+ *                                                                  *
+ ********************************************************************/
 
-export async function activate(context: ExtensionContext) {
-  // Check if user wants to use global executable
-  const config = workspace.getConfiguration('fish-lsp');
-  // Determine which fish-lsp executable to use
-  const serverPath = await getServerPath(context, config);
-  // Determine the path to the fish executable
-  fishPath = await getCommandFilePath('fish') || `fish`;
+// global variables that are initialized during activation
+export let fishPath: string = 'fish'; // Default fish path to `fish` executable
+export let serverPath: string = ''; // Default server path to the bundled fish-lsp executable
+export let client: LanguageClient; // The language client instance
 
-  // get the env variables from the fish executable
-  const env = await getFishEnvironment(fishPath);
+// Use the centralized workspace collection
+export const workspaceCollection = new FishWorkspaceCollection();
+export const notifiedWorkspaces = new Set<string>(); // Track notified workspaces to avoid duplicates
 
-  /**
-   * Set up the logging verbosity && message handler
-   */
-  const loggingVerbosity: 'off' | 'messages' | 'verbose' = config.get('trace.server', 'off');
-  const msg = showMessage(window, loggingVerbosity);
-
-  /**
-   * Build initial folders
-   */
-  const defaultWorkspaces = config.get('workspaces', []);
-  const defaultFolders = await Promise.all(defaultWorkspaces.map(async (val, idx) => {
-    const path = await execFileAsync(fishPath, ['-c', `echo ${val}`]);
-    if (path.stdout) {
-      const escapedPath = path.stdout.trim();
-      if (!fs.existsSync(escapedPath)) {
-        msg.info(`Workspace folder does not exist: ${escapedPath}`);
-        return undefined;
-      }
-      const workspaceFolder: WorkspaceFolder = {
-        uri: Uri.file(escapedPath),
-        name: val,
-        index: idx,
-      };
-      return workspaceFolder;
-    }
-    return undefined;
-  }).filter(ws => ws !== undefined) as Promise<WorkspaceFolder>[]);
-  /**
-   * Create an array of all the workspace folders
-   */
-  const allFolders = defaultFolders.map(folder => FishClientWorkspace.fromFolder(folder));
-  /**
-   * Add the current processes working directory as a workspace folder if it is not already included
-   */
-  let currentFolder = allFolders.find(ws => ws.contains(process.cwd())) || allFolders.find(ws => ws.contains(Uri.file(process.cwd()).fsPath));
-  if (!currentFolder) {
-    try {
-      currentFolder = FishClientWorkspace.createFromPath(Uri.parse(process.cwd()).fsPath);
-      if (currentFolder) allFolders.unshift(currentFolder);
-    } catch (error) {
-      console.error(`Failed to create workspace from current directory: ${error}`);
-    }
-  }
-  // add all the workspace folders to the workspace object
-  workspace.updateWorkspaceFolders(0, 0, ...allFolders.map(w => w.toWorkspaceFolder()));
-
-  // Server options - do not specify transport as fish-lsp handles stdio by default
-  const serverOptions: ServerOptions = {
-    run: {
-      command: serverPath,
-      args: ['start'],
-      options: {
-        env,
-      }
-    },
-    debug: {
-      command: serverPath,
-      args: ['start'],
-      options: {
-        env,
-      }
-    }
-  };
-
-  // Client options
-  const clientOptions: LanguageClientOptions = {
-    documentSelector: [
-      { scheme: 'file', language: 'fish' }
-    ],
-    synchronize: {
-      fileEvents: workspace.createFileSystemWatcher('**/*.fish'),
-    },
-    outputChannel: window.createOutputChannel('fish-lsp'),
-    traceOutputChannel: window.createOutputChannel('fish-lsp Trace'),
-    workspaceFolder: allFolders?.[0]?.toWorkspaceFolder(),
-    // Enable workspace folder capabilities
-    initializationOptions: {
-      // Add any initialization options here
-      fishPath,
-      workspacesFolders: allFolders,
-      fish_lsp_all_indexed_paths: allFolders.map(folder => folder.uri.fsPath),
-    },
-  };
-
-  // Create the language client
-  client = new LanguageClient(
-    'fish-lsp',
-    'fish-lsp',
-    serverOptions,
-    clientOptions,
-  );
-
-
-  // Register commands
-  setFishLspCommands(context, client, serverPath, msg);
-
-  // Handle workspace folder changes
-  context.subscriptions.push(
-    workspace.onDidChangeWorkspaceFolders(async (event) => {
-      if (client && client.isRunning()) {
-        // Notify the server about workspace folder changes
-        try {
-          await client.sendNotification('workspace/didChangeWorkspaceFolders', {
-            // fix if event.{added,removed} is contained inside an existing workspace folder
-            event: {
-              added: event.added.map(workspaceShortHand),
-              removed: event.removed.map(workspaceShortHand),
-            }
-          });
-        } catch (error) {
-          msg.error(`Failed to notify server of workspace folder changes: ${error}`);
-        }
-      } else {
-        // await client?.stop();
-        await client?.start();
-      }
-      msg.info(`Workspace folders updated: ${event.added.map(folder => folder.name).join(', ')}`);
-      msg.info(`Workspace folders updated: ${event.removed.map(folder => folder.name).join(', ')}`);
-    })
-  );
-
-  // TERMINAL INTEGRATION
-  // https://github.com/microsoft/vscode-extension-samples/blob/main/shell-integration-sample/src/extension.ts
-
-  // Handle opening of text documents
-  context.subscriptions.push(
-    workspace.onDidOpenTextDocument(async (doc) => {
-      if (doc.languageId === 'fish') {
-        msg.info(`File opened: ${doc.uri.fsPath}`);
-        const wsFolder = allFolders.find(folder => folder.contains(doc.uri));
-        if (wsFolder && client?.isRunning()) {
-          if (!client?.isRunning()) {
-            msg.info(`Client is not running, starting client for file: ${doc.uri.fsPath}`, {
-              override: true,
-            });
-            await client?.start();
-          }
-          await client.sendNotification(DidChangeWorkspaceFoldersNotification.type, {
-            event: {
-              added: [workspaceShortHand(wsFolder.toWorkspaceFolder())],
-              removed: []
-            },
-          });
-        } else {
-          // If no workspace folder, we could prompt to add the file's directory as a workspace folder
-          const fileUri = doc.uri;
-          const existingFolder = allFolders.find(folder => folder.contains(fileUri));
-          if (!existingFolder) {
-            const newWorkspace = FishClientWorkspace.createFromPath(fileUri.fsPath);
-            if (newWorkspace) {
-              workspace.updateWorkspaceFolders(
-                workspace.workspaceFolders?.length || 0,
-                0,
-                { uri: newWorkspace.uri, name: newWorkspace.name }
-              );
-              msg.info(`Added ${newWorkspace.name} to workspace`);
-            }
-          } else {
-            msg.info(`File is already in workspace: ${existingFolder.name}`);
-            await client?.sendNotification(DidOpenTextDocumentNotification.type, {
-              textDocument: {
-                uri: fileUri.toString(),
-                languageId: 'fish',
-                version: doc.version,
-                text: doc.getText()
-              }
-            });
-          }
-        }
-      }
-    }),
-  );
-
-  client.setTrace(Trace.fromString(loggingVerbosity));
-  // client.dispose();
-
-  /**
-   * Start the language client 
-   */
+export async function activate(context: vscode.ExtensionContext) {
   try {
-    msg.info('Starting language client...');
-    if (client?.isRunning()) await client?.stop();
-    await client?.start();
-    msg.info('Language client started successfully');
-  } catch (err) {
-    msg.error(`Failed to start Fish Language Server: ${err}`);
-    throw err;
+    // Determine which fish-lsp executable to use
+    serverPath = await getServerPath(context);
+
+    // Determine the path to the fish executable
+    fishPath = await getCommandFilePath('fish') || 'fish';
+
+    console.log(`[${new Date().toLocaleDateString()}] - Activating Fish LSP extension with items`, {
+      serverPath,
+      fishPath,
+      config,
+    });
+
+    // Validate executables
+    if (!PathUtils.isExecutable(fishPath)) {
+      winlog.warn(`Fish executable may not be accessible: ${fishPath}`);
+    }
+    if (!PathUtils.isExecutable(serverPath)) {
+      winlog.error(`Fish-lsp server executable not found or not executable: ${serverPath}`);
+      throw new Error(`Invalid fish-lsp server path: ${serverPath}`);
+    }
+
+    // Get the env variables from the fish executable
+    await initializeFishEnvironment();
+
+    // after initializing the env, create the workspaceFolder wrapper
+    const folders = await Folders.all();
+
+    // Server options
+    const serverOptions = {
+      run: {
+        command: serverPath,
+        args: ['start'],
+      },
+      debug: {
+        command: serverPath,
+        args: ['start'],
+        env: {
+          ...env,
+        },
+      }
+    };
+
+    const openDocument = vscode.window.activeTextEditor?.document;
+
+    const allWorkspaces = folders.fish.folders();
+    winlog.info(`All indexed workspaces: ${folders.fish.paths().join(', ')}`);
+
+    workspaceCollection.add(...allWorkspaces);
+
+    const initializationOptions = {
+      fishPath,
+      rootUri: workspaceCollection.get(openDocument?.uri || '')?.uri,
+      rootPath: workspaceCollection.get(openDocument?.uri || '')?.path,
+      workspaceFolders: folders.vscode.serverFolders(),
+    };
+
+    winlog.log(`Fish LSP Initialization Options: ${JSON.stringify(initializationOptions, null, 2)}`);
+    winlog.log(`All Workspace Folders: ${vscode.workspace.workspaceFolders}`);
+
+    // Client options
+    const clientOptions: LanguageClientOptions = {
+      documentSelector: [{ scheme: 'file', language: 'fish' }],
+      synchronize: {
+        fileEvents: vscode.workspace.createFileSystemWatcher('**/*.fish'),
+      },
+      outputChannel: vscode.window.createOutputChannel('fish-lsp'),
+      traceOutputChannel: vscode.window.createOutputChannel('fish-lsp Trace'),
+      workspaceFolder: vscode.workspace.workspaceFolders?.at(0),
+      progressOnInitialization: true,
+      revealOutputChannelOn: RevealOutputChannelOn.Info,
+      markdown: {
+        isTrusted: true, // Enable trusted markdown rendering
+      },
+      initializationFailedHandler: () => false,
+      initializationOptions,
+    };
+
+    // Create the language client
+    client = new LanguageClient(
+      'fish-lsp',
+      'fish-lsp',
+      serverOptions,
+      clientOptions,
+    );
+
+    // set the trace level based on configuration
+    client.setTrace(Trace.fromString(config.trace));
+
+    // Start the language client 
+    await client.stop();
+    await client.start();
+
+    // Make sure the client is registered in the context
+    context.subscriptions.push(
+      client,
+    );
+
+    // Register client commands and event handlers
+    setupFishLspEventHandlers(context);
+    setupFishLspCommands(context);
+    
+    // Show the status of the extension
+    winlog.info('Fish LSP extension activated successfully');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    winlog.error(`Failed to activate Fish LSP extension: ${message}`);
+    throw error;
   }
 }
 

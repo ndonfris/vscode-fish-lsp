@@ -127,6 +127,11 @@
             "$__fish_data_dir"
           ],
           "description": "List of workspace folders to use for the language server. If empty, the current workspace folder will be used."
+        },
+        "fish-lsp.enableWorkspaceFolders": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable the fish-lsp VSCode extension to add new WorkspaceFolders when the server opens a fish document in another fish workspace. Without this setting enabled, going to definitions outside of the current workspace will not index any new workspaces. Enabling this setting will automatically index new workspaces, and add them to the current VSCode workspace."
         }
       }
     },
@@ -182,6 +187,14 @@
       {
         "command": "fish-lsp.quickfix.all",
         "title": "Fish LSP: fix all quickfix diagnostics in file"
+      },
+      {
+        "command": "fish-lsp.show.currentWorkspace",
+        "title": "Fish LSP: show current workspace"
+      },
+      {
+        "command": "fish-lsp.update.currentWorkspace",
+        "title": "Fish LSP: update current workspace"
       }
     ],
     "menus": {
@@ -261,6 +274,8 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src --fix",
+    "debug:extension": "code --extensionDevelopmentPath=. ./test-workspace",
+    "debug:extension:only": "code --extensionDevelopmentPath=. --disable-extensions ./test-workspace",
     "clean": "rimraf out yarn.lock package-lock.json node_modules",
     "clean:packs": "rimraf *.tgz *.vsix",
     "install:unlink": "yarn unlink fish-lsp 2>/dev/null || true && yarn add fish-lsp@latest",
@@ -296,7 +311,7 @@
     "restoreMocks": false
   },
   "dependencies": {
-    "fish-lsp": "^1.0.9-1",
+    "fish-lsp": "^1.0.10-nightly-v4",
     "vscode-languageclient": "9.0.1"
   },
   "devDependencies": {

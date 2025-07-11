@@ -1,0 +1,155 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "compile",
+      "type": "npm",
+      "script": "compile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "options": {
+        "statusbar": {
+          "label": "$(gear~spin) Compiling..."
+        }
+      },
+      "problemMatcher": "$tsc"
+    },
+    {
+      "label": "watch",
+      "type": "npm", 
+      "script": "watch",
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared"
+      },
+      "isBackground": true,
+      "problemMatcher": "$tsc-watch"
+    },
+    {
+      "label": "Setup Fish LSP Logging",
+      "type": "shell",
+      "command": "fish",
+      "args": [
+        "-c",
+        "set -gx fish_lsp_log_file (pwd)/fish-lsp.log; set -gx fish_lsp_log_level debug; echo 'Environment set:'; echo '  fish_lsp_log_file='(pwd)/fish-lsp.log; echo '  fish_lsp_log_level=debug'; echo 'Now restart VS Code or run Restart Fish LSP task'"
+      ],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Restart Fish LSP",
+      "command": "${command:fish-lsp.restart}",
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Setup and Restart Fish LSP",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Setup Fish LSP Logging",
+        "Restart Fish LSP"
+      ],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Show Fish LSP Log File",
+      "command": "${command:fish-lsp.showLogFile}",
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Watch Fish LSP Logs",
+      "type": "shell",
+      "command": "fish",
+      "args": [
+        "-c",
+        "test -f (pwd)/fish-lsp.log && tail -f (pwd)/fish-lsp.log || echo 'No log file found. Run Setup and Restart Fish LSP first.'"
+      ],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Fish LSP Info",
+      "command": "${command:fish-lsp.info}",
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Fish LSP Check Health",
+      "command": "${command:fish-lsp.showCheckHealth}",
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Clean Logs and Temp Files",
+      "type": "shell",
+      "command": "fish",
+      "args": [
+        "-c",
+        "rm -f (pwd)/fish-lsp.log /tmp/fish-lsp*.log; rm -rf .vscode-test-data-*; echo 'Cleaned logs and temp files'"
+      ],
+      "group": "test"
+    },
+    {
+      "label": "Lint",
+      "type": "npm",
+      "script": "lint",
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": "$eslint-stylish"
+    }
+  ]
+}
