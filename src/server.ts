@@ -39,7 +39,7 @@ export async function getCommandFilePath(...command: string[]): Promise<string |
  */
 export async function getServerPath(context: ExtensionContext): Promise<string> {
   // Determine which fish-lsp executable to use
-  let extServerPath: string = extensionFishLspPath(context);
+  const extServerPath: string = extensionFishLspPath(context);
   let serverPath: string = extServerPath;
 
   const useGlobalExecutable = config.useGlobalExecutable;

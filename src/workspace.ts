@@ -36,7 +36,7 @@ const findWorkspaceRoot = (filePath: string): string | undefined => {
   const fileName = PathUtils.basename(filePath);
 
   // Handle specific fish directory names and config file
-  if (FISH_DIRS.includes(fileName as any) || fileName === CONFIG_FILE) {
+  if (FISH_DIRS.includes(fileName as typeof FISH_DIRS[number]) || fileName === CONFIG_FILE) {
     return PathUtils.dirname(filePath);
   }
 
@@ -234,29 +234,6 @@ export class FishWorkspaceCollection {
       }
     });
     return firstWorkspace;
-  }
-
-  addInitial() {
-    const current = this;
-    return function () {
-      const folders = vscode.workspace.workspaceFolders;
-      if (folders) {
-        folders.forEach(folder => {
-          const workspace = FishWorkspace.create(folder);
-          if (workspace && !current.has(workspace)) {
-            current.add(workspace);
-          }
-        });
-      }
-      const currentDoc = vscode.window.activeTextEditor?.document;
-      if (currentDoc) {
-        const workspace = FishWorkspace.create(currentDoc);
-        if (workspace && !current.has(workspace)) {
-          current.add(currentDoc);
-        }
-      }
-      return current.getAll();
-    };
   }
 
   findContaining(input: WorkspaceInput): FishWorkspace | undefined {
