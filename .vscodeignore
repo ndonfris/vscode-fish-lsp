@@ -14,3 +14,4 @@ images/**
 *.tgz
 *.vsix
 eslint.config.mjs
+extensions.json
