@@ -1949,10 +1949,10 @@ find-up@^5.0.0:
     locate-path "^6.0.0"
     path-exists "^4.0.0"
 
-fish-lsp@^1.0.10:
-  version "1.0.10"
-  resolved "https://registry.yarnpkg.com/fish-lsp/-/fish-lsp-1.0.10.tgz#54959de71eb5ddb0e7dbba257fd9c7b3319a0b9c"
-  integrity sha512-XxwJ7ywwce+6djZrzTRC7ljHI/d9LaxXWroSmDfaalMy2fp9p7ahl/Ozbj+X21SlU3zDUIYod+ioOLcQia8rcQ==
+fish-lsp@^1.0.10-nightly-v5:
+  version "1.0.10-nightly-v5"
+  resolved "https://registry.yarnpkg.com/fish-lsp/-/fish-lsp-1.0.10-nightly-v5.tgz#ff4593c515d8eaa3a0366f4e7be7e6aa095ffed6"
+  integrity sha512-PlDiYfLfFVgTfbfiXUZNxcmryX7Kz9A5edNSZ1/5l+QE8hSgM98Xr5UrGdPCoEhaCC2XpfLQl0yYqpxiBpB1xA==
   dependencies:
     commander "^12.0.0"
     deepmerge "^4.3.1"
