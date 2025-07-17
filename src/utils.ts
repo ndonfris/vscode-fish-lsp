@@ -37,6 +37,22 @@ const parseConfig = (): FishLspConfig => {
  */
 export const config = parseConfig();
 
+export namespace ConfigUtils {
+
+  /**
+   * Check if the extension is using an external executable for `fish-lsp`.
+   */
+  export const isUsingExternalServerExecutable = (): boolean => {
+    if (config.useGlobalExecutable) {
+      return true;
+    }
+    return config.executablePath.length > 0
+      ? PathUtils.isExecutable(config.executablePath)
+      : false;
+  };
+}
+
+
 /**
  * Utilities for logging and displaying messages in VSCode.
  */
@@ -76,7 +92,7 @@ function windowShowMessage(_window: typeof vscode.window, loggingVerbosity: Trac
   const getShouldShow = (
     loggingVerbosity: TraceLevel,
     type: LogType,
-    opts: {override: boolean;} = { override: false }
+    opts: { override: boolean; } = { override: false }
   ) => {
     if (opts.override && ['info', 'error'].includes(type)) return true;
     if (loggingVerbosity === 'off') return false;
@@ -124,7 +140,7 @@ export function getSilenceFishLspUpdateWorkspaceParam(): '--quiet' | undefined {
   switch (config.trace) {
     case 'verbose':
     case 'messages':
-        return undefined; // If logging is verbose or messages, we don't want to update the workspace
+      return undefined; // If logging is verbose or messages, we don't want to update the workspace
     case 'off':
     default:
       return '--quiet';
@@ -286,6 +302,41 @@ export const PathUtils = {
       && value.includes(path.sep || '/')
     );
   },
+
+  paths: {
+    user: {
+      config: (): string => {
+        return PathUtils.join(process.env.HOME || process.env.USERPROFILE || '', '.config', 'fish', 'config.fish');
+      },
+      dir: (): string => {
+        return PathUtils.join(process.env.HOME || process.env.USERPROFILE || '', '.config', 'fish');
+      },
+      completions: (): string => {
+        return PathUtils.join(PathUtils.paths.user.dir(), 'completions');
+      },
+      functions: (): string => {
+        return PathUtils.join(PathUtils.paths.user.dir(), 'functions');
+
+      },
+      confd: (): string => {
+        return PathUtils.join(PathUtils.paths.user.dir(), 'conf.d');
+      }
+    },
+    share: {
+      completions: (): string => {
+        return PathUtils.join(process.env.FISH_SHARE_DIR || '/usr/share/fish', 'completions');
+      },
+      functions: (): string => {
+        return PathUtils.join(process.env.FISH_SHARE_DIR || '/usr/share/fish', 'functions');
+      },
+      confd: (): string => {
+        return PathUtils.join(process.env.FISH_SHARE_DIR || '/usr/share/fish', 'conf.d');
+      },
+      dir: (): string => {
+        return PathUtils.join(process.env.FISH_SHARE_DIR || '/usr/share/fish');
+      }
+    }
+  }
 } as const;
 
 /**
@@ -406,3 +457,26 @@ export namespace WorkspaceFolderUtils {
   };
 }
 
+export namespace TerminalUtils {
+
+  export const exists = (name: string = 'fish w/ fish-lsp'): boolean => {
+    const existingTerminal = vscode.window.terminals.find(terminal => terminal.name === name);
+    if (existingTerminal) {
+      return true;
+    }
+    return false;
+  }
+
+}
+
+// Helper function to get or create the fish-lsp terminal
+export function getOrCreateFishLspTerminal(): vscode.Terminal {
+  const terminalName = 'fish w/ fish-lsp';
+  const existingTerminal = vscode.window.terminals.find(terminal => terminal.name === terminalName);
+
+  if (existingTerminal) {
+    return existingTerminal;
+  }
+
+  return vscode.window.createTerminal(terminalName);
+}

@@ -3,8 +3,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { homedir } from 'os';
 import { client, fishPath, serverPath } from './extension';
-import { winlog, execFileAsync } from './utils';
+import { winlog, execFileAsync, getOrCreateFishLspTerminal, PathUtils } from './utils';
 import { commands, Uri, window, workspace } from 'vscode';
+import { extensionFishLspPath, getCommandFilePath } from './server';
 
 /**
  * Register commands to execute in the client extension, 
@@ -428,6 +429,203 @@ export function setupFishLspCommands(context: vscode.ExtensionContext) {
       winlog.info('Updating workspace for ' + filepath, { override });
 
       return await commands.executeCommand('fish-lsp.updateWorkspace', filepath, ...args);
+    }),
+
+    commands.registerCommand('fish-lsp.addBundledServerToPATH', async () => {
+      const commandLocation = await getCommandFilePath('fish-lsp');
+      const bundledServerPath = extensionFishLspPath(context);
+      const bundledToAddPath = path.dirname(bundledServerPath);
+      const alreadyPrompted = context.globalState.get('hasPromptedForBundledServerPath', false);
+      if (bundledServerPath === serverPath && commandLocation === bundledServerPath) {
+        window.showInformationMessage(
+          'The bundled fish-lsp server is already in your PATH. No action needed.'
+        );
+        return;
+      }
+      const selection = await window.showInformationMessage(
+        'Would you like to add the bundled fish-lsp server to your PATH?',
+        'Yes',
+        'No',
+        'Don\'t ask again'
+      );
+      if (selection === 'Yes' || alreadyPrompted) {
+        const addPathCommand = `fish_add_path -g -p "${bundledToAddPath}"`;
+        await vscode.env.clipboard.writeText(addPathCommand);
+        const terminal = getOrCreateFishLspTerminal();
+        terminal.sendText('');
+        terminal.sendText(addPathCommand);
+        terminal.show(true);
+      } else if (selection === 'Don\'t ask again') {
+        context.globalState.update('hasPromptedForBundledServerPath', true);
+      } else if (selection === 'No') {
+        // Do nothing
+      } else if (selection === undefined) {
+        const addPathCommand = `fish_add_path -g -p "${bundledToAddPath}"`;
+        await vscode.env.clipboard.writeText(addPathCommand);
+        const terminal = getOrCreateFishLspTerminal();
+        terminal.sendText(addPathCommand);
+        terminal.show();
+      } else {
+        // do nothing
+      }
+
+    }),
+
+    commands.registerCommand('fish-lsp.aliasBundledServer', async () => {
+      const bundledServerPath = extensionFishLspPath(context);
+      const addPathCommand = `alias fish-lsp="${bundledServerPath}"`;
+
+      const configPath = PathUtils.paths.user.config();
+      const oldDoc = vscode.window.activeTextEditor?.document;
+      let terminal: vscode.Terminal;
+      let newDoc: vscode.TextDocument;
+      let originalContent: string;
+      let configContent: string;
+      let editor: vscode.TextEditor;
+      let line: vscode.TextLine;
+      let selection: vscode.Selection;
+      let startRange: vscode.Position;
+      let endRange: vscode.Position;
+      let range: vscode.Range;
+      let newEdit: vscode.WorkspaceEdit;
+      let undoEdit: vscode.WorkspaceEdit;
+      const functionCommand = `function fish-lsp; "${bundledServerPath}" $argv; end; funcsave fish-lsp`;
+
+      const quickPickSelection = await window.showQuickPick([
+        {
+          label: 'Yes',
+          description: 'Create alias and send alias to terminal (focuses terminal), copies alias to clipboard',
+          detail: addPathCommand
+        },
+        {
+          label: 'Yes, but don\'t focus terminal',
+          description: 'Create alias without focusing terminal, copies alias to clipboard',
+        },
+        {
+          label: 'Copy command only',
+          description: 'Copy the alias command to clipboard without running',
+          detail: `echo "${addPathCommand}" | fish_clipboard_copy`
+        },
+        {
+          label: 'Export to ~/.config/fish/config.fish',
+          description: 'Add alias to your fish config file permanently',
+          detail: `echo "${addPathCommand}" >> ~/.config/fish/config.fish`
+        },
+        {
+          label: 'Create function instead',
+          description: 'Create a fish function instead of an alias',
+          detail: `function fish-lsp; "${bundledServerPath}" $argv; end`
+        },
+        {
+          label: 'No',
+          description: 'Skip aliasing the bundled server',
+          detail: 'No alias will be created'
+        }
+      ], {
+        placeHolder: 'Would you like to alias the bundled fish-lsp server to the command `fish-lsp`?',
+        ignoreFocusOut: true
+      });
+
+      switch (quickPickSelection?.label) {
+        case 'Yes':
+          await vscode.env.clipboard.writeText(addPathCommand);
+          terminal = getOrCreateFishLspTerminal();
+          terminal.sendText(addPathCommand);
+          terminal.show();
+          break;
+
+        case 'Yes, but don\'t focus terminal':
+          await vscode.env.clipboard.writeText(addPathCommand);
+          terminal = getOrCreateFishLspTerminal();
+          terminal.sendText(addPathCommand);
+          break;
+
+        case 'Copy command only':
+          await vscode.env.clipboard.writeText(addPathCommand);
+          window.showInformationMessage('Alias command copied to clipboard.');
+          break;
+
+        case 'Export to ~/.config/fish/config.fish':
+          try {
+            if (!configPath || !PathUtils.exists(configPath)) {
+              window.showErrorMessage('Fish config file not found. Please ensure ~/.config/fish/config.fish exists.');
+              return;
+            }
+            originalContent = await fs.promises.readFile(configPath, 'utf8');
+            configContent = `\n# Added by fish-lsp VSCode extension\n${addPathCommand}\n`;
+            newDoc = await workspace.openTextDocument(configPath);
+            editor = await window.showTextDocument(newDoc);
+            line = editor.document.lineAt(editor.document.lineCount - 1);
+            endRange = line.range.end;
+            startRange = line.range.start;
+            range = new vscode.Range(startRange, endRange);
+            selection = new vscode.Selection(range.end, newDoc!.lineAt(newDoc!.lineCount - 1)?.range.end);
+            newEdit = new vscode.WorkspaceEdit();
+            newEdit.insert(newDoc.uri, range.end, configContent);
+            workspace.applyEdit(newEdit);
+
+            await window.showInformationMessage('Alias added to fish config file.',
+              'peek',
+              'show',
+              'cancel',
+              'undo',
+              'accept',
+            ).then(async (choice) => {
+              switch (choice) {
+                case 'peek':
+                  if (editor) {
+                    editor.revealRange(range);
+                    editor.selection = selection;
+                  }
+                  break;
+                case 'show':
+                  newDoc = await workspace.openTextDocument(configPath);
+                  await window.showTextDocument(newDoc, { preserveFocus: false, selection });
+                  return;
+                case 'cancel':
+                  await fs.promises.writeFile(configPath, originalContent);
+                  window.showInformationMessage('Alias not added to fish config file.');
+                  newDoc = await workspace.openTextDocument(configPath);
+                  newEdit = new vscode.WorkspaceEdit();
+                  newEdit.replace(newDoc.uri, selection, '');
+                  workspace.applyEdit(newEdit);
+                  return;
+                case 'undo':
+                  undoEdit = new vscode.WorkspaceEdit();
+                  undoEdit.replace(newDoc!.uri, selection, '');
+                  workspace.applyEdit(undoEdit);
+                  await workspace.openTextDocument(oldDoc!);
+                  return;
+                case 'accept':
+                  window.showInformationMessage('Alias added to fish config file.');
+                  await workspace.openTextDocument(oldDoc);
+                  break;
+                default:
+                  await workspace.openTextDocument(oldDoc);
+                  break;
+
+              }
+            });
+          } catch (error) {
+            window.showErrorMessage(`Failed to write to config file: ${error}`);
+            await workspace.openTextDocument(oldDoc);
+          }
+          break;
+
+        case 'Create function instead':
+          await vscode.env.clipboard.writeText(functionCommand);
+          terminal = getOrCreateFishLspTerminal();
+          terminal.sendText(functionCommand);
+          terminal.show();
+          break;
+
+        case 'No':
+          break;
+
+        default:
+          window.showInformationMessage('Bundled fish-lsp server aliasing skipped.');
+          break;
+      }
     }),
 
   );
