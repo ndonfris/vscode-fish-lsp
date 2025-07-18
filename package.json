@@ -320,7 +320,7 @@
     "restoreMocks": false
   },
   "dependencies": {
-    "fish-lsp": "^1.0.10-nightly-v5",
+    "fish-lsp": "^1.0.10-nightly-v6",
     "vscode-languageclient": "9.0.1"
   },
   "devDependencies": {
@@ -333,6 +333,7 @@
     "@typescript-eslint/eslint-plugin": "^8.21.0",
     "@typescript-eslint/parser": "^8.21.0",
     "@vscode/test-electron": "^2.3.2",
+    "@vscode/vsce": "^3.6.0",
     "esbuild": "^0.25.5",
     "eslint": "^9.18.0",
     "glob": "^11.0.2",
