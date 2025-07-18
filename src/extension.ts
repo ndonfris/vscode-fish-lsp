@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
-import { LanguageClient, LanguageClientOptions, RevealOutputChannelOn, Trace } from 'vscode-languageclient/node';
+import { LanguageClient, LanguageClientOptions, RevealOutputChannelOn, ServerOptions, Trace, TransportKind } from 'vscode-languageclient/node';
 import { getCommandFilePath, getServerPath } from './server';
 import { FishWorkspaceCollection, Folders } from './workspace';
 import { setupFishLspCommands } from './commands';
-import { winlog, config, PathUtils, initializeFishEnvironment, env } from './utils';
+import { winlog, config, PathUtils, initializeFishEnvironment } from './utils';
 import { setupFishLspEventHandlers } from './handlers';
 
 /********************************************************************
@@ -54,18 +54,21 @@ export async function activate(context: vscode.ExtensionContext) {
     const folders = await Folders.all();
 
     // Server options
-    const serverOptions = {
+    const serverOptions: ServerOptions = {
       run: {
         command: serverPath,
         args: ['start'],
+        options: {
+          detached: true,
+          shell: true, // Use shell to execute the command
+          env: { ...process.env },
+        },
       },
       debug: {
         command: serverPath,
         args: ['start'],
-        env: {
-          ...env,
-        },
-      }
+        transport: TransportKind.ipc,
+      },
     };
 
     const openDocument = vscode.window.activeTextEditor?.document;
