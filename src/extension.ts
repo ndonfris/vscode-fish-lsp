@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { LanguageClient, LanguageClientOptions, RevealOutputChannelOn, ServerOptions, Trace, TransportKind } from 'vscode-languageclient/node';
+import { LanguageClient, LanguageClientOptions, RevealOutputChannelOn, ServerOptions, Trace } from 'vscode-languageclient/node';
 import { getCommandFilePath, getServerPath } from './server';
 import { FishWorkspaceCollection, Folders } from './workspace';
 import { setupFishLspCommands } from './commands';
@@ -67,7 +67,6 @@ export async function activate(context: vscode.ExtensionContext) {
       debug: {
         command: serverPath,
         args: ['start'],
-        transport: TransportKind.ipc,
       },
     };
 
