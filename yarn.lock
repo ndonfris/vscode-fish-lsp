@@ -2630,7 +2630,7 @@ find-up@^5.0.0:
     locate-path "^6.0.0"
     path-exists "^4.0.0"
 
-fish-lsp@^1.0.10-nightly-v7:
+fish-lsp@1.0.10-nightly-v7:
   version "1.0.10-nightly-v7"
   resolved "https://registry.yarnpkg.com/fish-lsp/-/fish-lsp-1.0.10-nightly-v7.tgz#f7e797d61949925aed5a7fc2c43c32bc76a22230"
   integrity sha512-Ew3XNp5a1wkjW9O0vehCrddWLjMxpxvJp5Nz3g/o+kVODay+8S8SGYXRTl9BEVLfKz4tQjs8t5Zm+gjQGmXtMw==
