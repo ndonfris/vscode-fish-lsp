@@ -1,6 +1,6 @@
 {
   "terminal.integrated.defaultProfile.linux": "fish",
   "fish-lsp.useGlobalExecutable": false,
-  "fish-lsp.trace.server": "verbose",
+  "fish-lsp.trace.server": "off",
   "fish-lsp.enableWorkspaceFolders": true
 }
