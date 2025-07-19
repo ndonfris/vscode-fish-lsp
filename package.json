@@ -2,7 +2,7 @@
   "name": "fish-lsp",
   "displayName": "fish-lsp",
   "description": "fish shell language support via fish-lsp",
-  "version": "0.1.7",
+  "version": "v0.1.7-pre.3",
   "license": "MIT",
   "publisher": "ndonfris",
   "author": {
