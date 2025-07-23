@@ -117,7 +117,7 @@ export async function activate(context: vscode.ExtensionContext) {
     client.setTrace(Trace.fromString(config.trace));
 
     // Start the language client 
-    await client.stop();
+    // await client.stop();
     await client.start();
 
     // Make sure the client is registered in the context
