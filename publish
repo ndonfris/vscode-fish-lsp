@@ -1,5 +1,8 @@
 #!/usr/bin/env fish
 
+argparse pre-release -- $argv 2>/dev/null
+or return 1
+
 if not set -q OPEN_VSX_TOKEN
     echo "OPEN_VSX_TOKEN is not set. Please set it before running this script." >&2
     exit 1
@@ -12,5 +15,10 @@ end
 
 yarn install
 
-npx ovsx publish -p $OPEN_VSX_TOKEN --yarn
-npx vsce publish -p $VSCE_TOKEN --yarn
+if set -ql _flag_pre_release
+    npx ovsx publish -p $OPEN_VSX_TOKEN --yarn --pre-release
+    npx vsce publish -p $VSCE_TOKEN --yarn --pre-release
+else
+    npx ovsx publish -p $OPEN_VSX_TOKEN --yarn
+    npx vsce publish -p $VSCE_TOKEN --yarn
+end
