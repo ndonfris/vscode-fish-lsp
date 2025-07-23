@@ -58,11 +58,11 @@ export async function activate(context: vscode.ExtensionContext) {
       run: {
         command: serverPath,
         args: ['start'],
-        options: {
-          detached: true,
-          shell: true, // Use shell to execute the command
-          env: { ...process.env },
-        },
+        // options: {
+        //   shell: true, // Use shell to execute the command
+        //   // env: { ...process.env },
+        // },
+        // transport: client.transport.kind ,
       },
       debug: {
         command: serverPath,
@@ -97,7 +97,7 @@ export async function activate(context: vscode.ExtensionContext) {
       traceOutputChannel: vscode.window.createOutputChannel('fish-lsp Trace'),
       workspaceFolder: vscode.workspace.workspaceFolders?.at(0),
       progressOnInitialization: true,
-      revealOutputChannelOn: RevealOutputChannelOn.Info,
+      revealOutputChannelOn: RevealOutputChannelOn.Error,
       markdown: {
         isTrusted: true, // Enable trusted markdown rendering
       },
