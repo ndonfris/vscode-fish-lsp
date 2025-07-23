@@ -359,6 +359,13 @@
   dependencies:
     "@babel/helper-plugin-utils" "^7.27.1"
 
+"@babel/runtime-corejs3@^7.28.0":
+  version "7.28.0"
+  resolved "https://registry.yarnpkg.com/@babel/runtime-corejs3/-/runtime-corejs3-7.28.0.tgz#4d9938897f5a9aaa9e5f99408a4bf86daba40ec1"
+  integrity sha512-nlIXnSqLcBij8K8TtkxbBJgfzfvi75V1pAKSM7dUXejGw12vJAqez74jZrHTsJ3Z+Aczc5Q/6JgNjKRMsVU44g==
+  dependencies:
+    core-js-pure "^3.43.0"
+
 "@babel/template@^7.27.2", "@babel/template@^7.3.3":
   version "7.27.2"
   resolved "https://registry.yarnpkg.com/@babel/template/-/template-7.27.2.tgz#fa78ceed3c4e7b63ebf6cb39e5852fca45f6809d"
@@ -1962,6 +1969,16 @@ convert-source-map@^2.0.0:
   resolved "https://registry.yarnpkg.com/convert-source-map/-/convert-source-map-2.0.0.tgz#4b560f649fc4e918dd0ab75cf4961e8bc882d82a"
   integrity sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==
 
+core-js-pure@^3.43.0:
+  version "3.44.0"
+  resolved "https://registry.yarnpkg.com/core-js-pure/-/core-js-pure-3.44.0.tgz#6e9d6c128c8b967c5eac4f181c2b654d85c28090"
+  integrity sha512-gvMQAGB4dfVUxpYD0k3Fq8J+n5bB6Ytl15lqlZrOIXFzxOhtPaObfkQGHtMRdyjIf7z2IeNULwi1jEwyS+ltKQ==
+
+core-js@3:
+  version "3.44.0"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.44.0.tgz#db4fd4fa07933c1d6898c8b112a1119a9336e959"
+  integrity sha512-aFCtd4l6GvAXwVEh3XbbVqJGHDJt0OZRa+5ePGx3LLwi12WfexqQxcsohb2wgsa/92xtl19Hd66G/L+TaAxDMw==
+
 core-util-is@~1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.3.tgz#a6042d3634c2b27e9328f837b965fac83808db85"
@@ -2630,12 +2647,14 @@ find-up@^5.0.0:
     locate-path "^6.0.0"
     path-exists "^4.0.0"
 
-fish-lsp@1.0.10-nightly-v7:
-  version "1.0.10-nightly-v7"
-  resolved "https://registry.yarnpkg.com/fish-lsp/-/fish-lsp-1.0.10-nightly-v7.tgz#f7e797d61949925aed5a7fc2c43c32bc76a22230"
-  integrity sha512-Ew3XNp5a1wkjW9O0vehCrddWLjMxpxvJp5Nz3g/o+kVODay+8S8SGYXRTl9BEVLfKz4tQjs8t5Zm+gjQGmXtMw==
+fish-lsp@1.0.11-pre.3:
+  version "1.0.11-pre.3"
+  resolved "https://registry.yarnpkg.com/fish-lsp/-/fish-lsp-1.0.11-pre.3.tgz#08f71a96df7b0087341fdeb95f47a6086226aa2a"
+  integrity sha512-m7Nl3Dv8uXlpNjjKV+ap3sWSRed8xQLXusHbdw2kC7siw/t/9zsPY9wWZg0CoKVn4+IIYnpbMdZkcP8fOiuxIw==
   dependencies:
+    "@babel/runtime-corejs3" "^7.28.0"
     commander "^12.0.0"
+    core-js "3"
     deepmerge "^4.3.1"
     fast-glob "^3.3.2"
     husky "^9.0.11"
