@@ -1,5 +1,5 @@
 {
-  "name": "fish-lsp",
+  "name": "fish-lsp-vscode",
   "displayName": "fish-lsp",
   "description": "fish shell language support via fish-lsp",
   "version": "0.1.9",
@@ -16,7 +16,7 @@
   "engines": {
     "vscode": "^1.75.0"
   },
-  "icon": "images/fish-lsp-logo.png",
+  "icon": "./images/fish-lsp-logo.png",
   "galleryBanner": {
     "color": "#2c3e50",
     "theme": "dark"
@@ -44,7 +44,6 @@
     "completion",
     "intellisense",
     "fish-lsp",
-    "shell",
     "language-client",
     "language-server",
     "fish-shell"
@@ -337,7 +336,8 @@
   },
   "dependencies": {
     "fish-lsp": "1.0.11-pre.3",
-    "vscode-languageclient": "9.0.1"
+    "vscode-languageclient": "9.0.1",
+    "vscode-languageserver": "^9.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",
