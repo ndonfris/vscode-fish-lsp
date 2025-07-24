@@ -1,12 +1,7 @@
 import path from 'path';
 import { config, execFileAsync, PathUtils, winlog } from './utils';
 import { env, ExtensionContext } from 'vscode';
-import {
-  LanguageClient,
-  LanguageClientOptions,
-  ServerOptions,
-  TransportKind,
-} from 'vscode-languageclient/node';
+import { ServerOptions, TransportKind } from 'vscode-languageclient/node';
 
 /**
  * ~/.vscode/extensions/fish-lsp-.../node_modules/fish-lsp/bin/fish-lsp
@@ -101,22 +96,28 @@ const isUsingProcessCommand = () => {
 export async function createServerOptions(context: ExtensionContext): Promise<ServerOptions> {
   winlog.log('Creating server options for fish-lsp');
   if (isUsingProcessCommand()) {
-    winlog.log('Using global process\'s fish-lsp as configured');
+    console.log('Using global process\'s fish-lsp as configured');
     const serverPath = await getServerPath(context);
     return {
       command: serverPath,
       args: ['start'],
+      options: {
+        env: {
+          ...env,
+          // Add any additional environment variables if needed
+        },
+      },
     };
   }
   // If not using a process command, use the bundled server module
   const serverModule = context.asAbsolutePath(path.join('out', 'server-module.js'));
-  winlog.log(`Using server module at: ${serverModule}`);
+  console.log(`Using server module at: ${serverModule}`);
   const runCommand: ServerOptions = {
     module: serverModule,
     transport: TransportKind.ipc,
-    options: {
-      env,
-    }
+    // options: {
+    //   env,
+    // }
   };
   const debugCommand: ServerOptions = {
     ...runCommand,

@@ -2647,10 +2647,10 @@ find-up@^5.0.0:
     locate-path "^6.0.0"
     path-exists "^4.0.0"
 
-fish-lsp@1.0.11-pre.3:
-  version "1.0.11-pre.3"
-  resolved "https://registry.yarnpkg.com/fish-lsp/-/fish-lsp-1.0.11-pre.3.tgz#08f71a96df7b0087341fdeb95f47a6086226aa2a"
-  integrity sha512-m7Nl3Dv8uXlpNjjKV+ap3sWSRed8xQLXusHbdw2kC7siw/t/9zsPY9wWZg0CoKVn4+IIYnpbMdZkcP8fOiuxIw==
+fish-lsp@1.0.11-pre.4:
+  version "1.0.11-pre.4"
+  resolved "https://registry.yarnpkg.com/fish-lsp/-/fish-lsp-1.0.11-pre.4.tgz#9e73e7617996a6a186c18bda3db870e412a0b31c"
+  integrity sha512-wkaOOzlgp+m/miSkQIjIkujB/bxHMn0H9anmCk1CscLoO2XA0bYqzrC3Z5reA9dgL3c0WI0HbHCwnUzKrfviLQ==
   dependencies:
     "@babel/runtime-corejs3" "^7.28.0"
     commander "^12.0.0"
@@ -5670,7 +5670,7 @@ vscode-jsonrpc@8.2.0:
   resolved "https://registry.yarnpkg.com/vscode-jsonrpc/-/vscode-jsonrpc-8.2.0.tgz#f43dfa35fb51e763d17cd94dcca0c9458f35abf9"
   integrity sha512-C+r0eKJUIfiDIfwJhria30+TYWPtuHJXHtI7J0YlOmKAo7ogxP20T0zxB7HZQIFhIyvoBPwWskjxrvAtfjyZfA==
 
-vscode-languageclient@9.0.1:
+vscode-languageclient@^9.0.1:
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/vscode-languageclient/-/vscode-languageclient-9.0.1.tgz#cdfe20267726c8d4db839dc1e9d1816e1296e854"
   integrity sha512-JZiimVdvimEuHh5olxhxkht09m3JzUGwggb5eRUkzzJhZ2KjCN0nh55VfiED9oez9DyF8/fz1g1iBV3h+0Z2EA==

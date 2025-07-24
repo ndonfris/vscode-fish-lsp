@@ -1,11 +1,19 @@
-import FishServer from 'fish-lsp'
+import FishServer from 'fish-lsp';
+// import { ProposedFeatures } from 'vscode-languageclient/node';
 import {
   createConnection,
   InitializeParams,
   InitializeResult,
   ProposedFeatures,
-} from 'vscode-languageserver/node'
+  // ProposedFeatures,
+  // StreamMessageReader,
+  // StreamMessageWriter,
+} from 'vscode-languageserver/node';
 
+// const connection = createConnection(
+//   new StreamMessageReader(process.stdin),
+//   new StreamMessageWriter(process.stdout),
+// );
 const connection = createConnection(ProposedFeatures.all)
 
 connection.onInitialize(
@@ -25,15 +33,15 @@ connection.onInitialize(
 //   }
 // })
 
-connection.listen()
+connection.listen();
 
 // Don't die on unhandled Promise rejections
 process.on('unhandledRejection', (reason, p) => {
-  const stack = reason instanceof Error ? reason.stack : reason
-  connection.console.error(`Unhandled Rejection at promise: ${p}, reason: ${stack}`)
-})
+  const stack = reason instanceof Error ? reason.stack : reason;
+  connection.console.error(`Unhandled Rejection at promise: ${p}, reason: ${stack}`);
+});
 
 process.on('SIGPIPE', () => {
   // Don't die when attempting to pipe stdin to a bad spawn
   // https://github.com/electron/electron/issues/13254
-})
+});
