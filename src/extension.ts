@@ -97,7 +97,7 @@ export async function activate(context: vscode.ExtensionContext) {
       traceOutputChannel: vscode.window.createOutputChannel('fish-lsp Trace'),
       workspaceFolder: vscode.workspace.workspaceFolders?.at(0),
       progressOnInitialization: true,
-      revealOutputChannelOn: RevealOutputChannelOn.Error,
+      revealOutputChannelOn: RevealOutputChannelOn.Info,
       markdown: {
         isTrusted: true, // Enable trusted markdown rendering
       },
@@ -112,6 +112,7 @@ export async function activate(context: vscode.ExtensionContext) {
       serverOptions,
       clientOptions,
     );
+    client.registerProposedFeatures();
 
     // set the trace level based on configuration
     client.setTrace(Trace.fromString(config.trace));
