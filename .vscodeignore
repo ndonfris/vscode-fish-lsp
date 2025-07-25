@@ -1,13 +1,15 @@
 .vscode/**
+tests/**
 .vscode-test/**
 src/**
 .gitignore
 .eslintrc.json
+eslint.config.mjs
+tsconfig.jest.json
 **/tsconfig.json
 **/.eslintrc.json
 **/*.map
 **/*.ts
-**.fish
 README.md
 images/**
 !images/fish-lsp-logo.png
@@ -17,3 +19,5 @@ eslint.config.mjs
 extensions.json
 ./publish
 .env.fish
+test.fish
+.yarnrc
