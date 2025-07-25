@@ -15,3 +15,5 @@ images/**
 *.vsix
 eslint.config.mjs
 extensions.json
+./publish
+.env.fish
