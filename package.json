@@ -137,88 +137,97 @@
     "commands": [
       {
         "command": "fish-lsp.restart",
-        "title": "Fish LSP: Restart the fish-lsp",
+        "title": "fish-lsp: Restart the fish-lsp",
         "when": "editorLangId == fish"
       },
       {
         "command": "fish-lsp.env",
-        "title": "Fish LSP: output `fish-lsp env --show` (ALIAS for `fish-lsp.env.show`)",
+        "title": "fish-lsp: output `fish-lsp env --show` (ALIAS for `fish-lsp.env.show`)",
         "when": "editorLangId == fish"
       },
       {
         "command": "fish-lsp.env.create",
-        "title": "Fish LSP: output `fish-lsp env --create`",
+        "title": "fish-lsp: output `fish-lsp env --create`",
         "when": "editorLangId == fish"
       },
       {
         "command": "fish-lsp.env.show",
-        "title": "Fish LSP: output `fish-lsp env --show`",
+        "title": "fish-lsp: output `fish-lsp env --show`",
         "when": "editorLangId == fish"
       },
       {
         "command": "fish-lsp.env.show-defaults",
-        "title": "Fish LSP: output `fish-lsp env --show-defaults`",
+        "title": "fish-lsp: output `fish-lsp env --show-defaults`",
         "when": "editorLangId == fish"
       },
       {
         "command": "fish-lsp.info",
-        "title": "Fish LSP: show `fish-lsp info`",
+        "title": "fish-lsp: show `fish-lsp info`",
         "when": "editorLangId == fish"
       },
       {
         "command": "fish-lsp.generateCompletions",
-        "title": "Fish LSP: Generate Shell Completions",
+        "title": "fish-lsp: Generate Shell Completions",
         "when": "editorLangId == fish"
       },
       {
         "command": "fish-lsp.evalSelection",
-        "title": "Fish LSP: Evaluate Selection or Current Line",
+        "title": "fish-lsp: Evaluate Selection or Current Line",
         "when": "editorLangId == fish"
       },
       {
         "command": "fish-lsp.evalFile",
-        "title": "Fish LSP: Evaluate Entire File",
+        "title": "fish-lsp: Evaluate Entire File",
         "when": "editorLangId == fish"
       },
       {
         "command": "fish-lsp.showLogFile",
-        "title": "Fish LSP: Show Log File",
+        "title": "fish-lsp: Show Log File",
         "when": "editorLangId == fish"
       },
       {
         "command": "fish-lsp.showCheckHealth",
-        "title": "Fish LSP: Show Health Status",
+        "title": "fish-lsp: Show Health Status",
         "when": "editorLangId == fish"
       },
       {
         "command": "fish-lsp.showCommandHelp",
-        "title": "Fish LSP: Show `man page/help info` for command",
+        "title": "fish-lsp: Show `man page/help info` for command",
         "when": "editorLangId == fish"
       },
       {
         "command": "fish-lsp.quickfix.all",
-        "title": "Fish LSP: fix all quickfix diagnostics in file",
+        "title": "fish-lsp: fix all quickfix diagnostics in file",
         "when": "editorLangId == fish"
       },
       {
         "command": "fish-lsp.show.currentWorkspace",
-        "title": "Fish LSP: show current workspace",
+        "title": "fish-lsp: show current workspace",
         "when": "editorLangId == fish"
       },
       {
         "command": "fish-lsp.update.currentWorkspace",
-        "title": "Fish LSP: update current workspace",
+        "title": "fish-lsp: update current workspace",
         "when": "editorLangId == fish"
       },
       {
         "command": "fish-lsp.addBundledServerToPATH",
-        "title": "Fish LSP: add bundled server to $PATH if not already present in $PATH",
+        "title": "fish-lsp: add bundled server to $PATH if not already present in $PATH",
         "when": "editorLangId == fish"
       },
       {
         "command": "fish-lsp.aliasBundledServer",
-        "title": "Fish LSP: alias bundled server to `fish-lsp` command",
+        "title": "fish-lsp: alias bundled server to `fish-lsp` command",
         "when": "editorLangId == fish"
+      },
+      {
+        "command": "fish-lsp.server.info",
+        "title": "fish-lsp: show server info",
+        "when": "editorLangId == fish"
+      },
+      {
+        "command": "fish-lsp.open.config.fish",
+        "title": "fish-lsp: open ~/.config/fish/config.fish"
       }
     ],
     "menus": {
@@ -252,6 +261,11 @@
           "command": "fish-lsp.quickfix.all",
           "when": "editorLangId == fish && editorHasCodeActionsProvider && editorHasDocumentFormattingProvider",
           "group": "fish-lsp@6"
+        },
+        {
+          "command": "fish-lsp.open.config.fish",
+          "when": "editorLangId == fish",
+          "group": "fish-lsp@7"
         }
       ]
     },
@@ -335,7 +349,7 @@
     "restoreMocks": false
   },
   "dependencies": {
-    "fish-lsp": "1.0.11-pre.4",
+    "fish-lsp": "1.0.11-pre.5",
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver": "^9.0.1"
   },

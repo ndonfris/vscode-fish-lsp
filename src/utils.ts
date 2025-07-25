@@ -5,6 +5,7 @@ import { promisify } from 'util';
 import * as vscode from 'vscode';
 import { FishWorkspace } from './workspace';
 import { fishPath } from './extension';
+import { RevealOutputChannelOn } from 'vscode-languageclient/node';
 
 type TraceLevel = 'off' | 'messages' | 'verbose';
 
@@ -480,3 +481,17 @@ export function getOrCreateFishLspTerminal(): vscode.Terminal {
 
   return vscode.window.createTerminal(terminalName);
 }
+
+export namespace FishLspOutputChannel {
+  export const reveal = () => {
+    switch (config.trace) {
+      case 'verbose': 
+      case 'messages':
+        return RevealOutputChannelOn.Info;
+      case 'off':
+      default:
+        return RevealOutputChannelOn.Never;
+    }
+  }
+}
+

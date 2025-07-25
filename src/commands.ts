@@ -628,6 +628,20 @@ export function setupFishLspCommands(context: vscode.ExtensionContext) {
       }
     }),
 
+    commands.registerCommand('fish-lsp.server.info', async () => {
+      await commands.executeCommand('fish-lsp.showInfo');
+    }),
+
+    commands.registerCommand('fish-lsp.open.config.fish', async () => {
+      const configPath = PathUtils.paths.user.config();
+      if (!configPath || !PathUtils.exists(configPath)) {
+        window.showErrorMessage('Fish config file not found. Please ensure ~/.config/fish/config.fish exists.');
+        return;
+      }
+      const doc = await workspace.openTextDocument(Uri.file(configPath));
+      await window.showTextDocument(doc, { preserveFocus: false });
+    }),
+
   );
 
   winlog.info('Fish LSP commands registered');
