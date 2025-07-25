@@ -1,7 +1,34 @@
 #!/usr/bin/env fish
 
-argparse pre-release -- $argv 2>/dev/null
+argparse h/help c/completions package-only pre-release -- $argv 2>/dev/null
 or return 1
+
+if set -ql _flag_help
+    echo "Usage: publish [OPTIONS]"
+    echo "Options:"
+    echo "  -h, --help          Show this help message"
+    echo "  --package-only      Package the extension without publishing"
+    echo "  --pre-release       Publish as a pre-release version"
+    echo "  -c, --completions   Generate completions for this script"
+    return 0
+end
+
+if set -ql _flag_completions
+    set -l file_path (status current-filename | path resolve)
+    echo "complete -p $file_path -f"
+    echo "complete -p $file_path -s h -l help -d 'Show this help message'"
+    echo "complete -p $file_path -s c -l completions -d 'Generate completions for this script'"
+    echo "complete -p $file_path -l package-only -d 'Package the extension without publishing'"
+    echo "complete -p $file_path -l pre-release -d 'Publish as a pre-release version'"
+    return 0
+end
+
+if set -ql _flag_package_only
+    echo "Packaging only, skipping publishing." >&2
+    npx vsce pack --yarn
+    exit $status
+end
+
 
 if not set -q OPEN_VSX_TOKEN
     echo "OPEN_VSX_TOKEN is not set. Please set it before running this script." >&2
