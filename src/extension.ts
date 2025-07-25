@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
-import { LanguageClient, LanguageClientOptions, RevealOutputChannelOn, ServerOptions, Trace } from 'vscode-languageclient/node';
-import { createServerOptions, getCommandFilePath, getServerPath } from './server';
+import { LanguageClient, LanguageClientOptions, ServerOptions, Trace } from 'vscode-languageclient/node';
+import { createServerOptions, getCommandFilePath, getServerPath, isUsingProcessCommand } from './server';
 import { FishWorkspaceCollection, Folders } from './workspace';
 import { setupFishLspCommands } from './commands';
-import { winlog, config, PathUtils, initializeFishEnvironment } from './utils';
+import { winlog, config, PathUtils, initializeFishEnvironment, FishLspOutputChannel } from './utils';
 import { setupFishLspEventHandlers } from './handlers';
 
 /********************************************************************
@@ -39,10 +39,15 @@ export async function activate(context: vscode.ExtensionContext) {
     });
 
     // Validate executables
+    // If there is no fish executable, don't activate the extension
     if (!PathUtils.isExecutable(fishPath)) {
-      winlog.warn(`Fish executable may not be accessible: ${fishPath}`);
+      vscode.window.showErrorMessage('Please ensure the fish executable is installed and accessible in your $PATH.');
+      throw new Error(`Invalid fish executable path: ${fishPath}`);
     }
-    if (!PathUtils.isExecutable(serverPath)) {
+    // If we are using a subprocess command, ensure the serverPath is executable
+    // A subproccess command here means that we are using the external `fish-lsp` binary and
+    // not the bundled module for the server
+    if (isUsingProcessCommand() && !PathUtils.isExecutable(serverPath)) {
       winlog.error(`Fish-lsp server executable not found or not executable: ${serverPath}`);
       throw new Error(`Invalid fish-lsp server path: ${serverPath}`);
     }
@@ -53,22 +58,6 @@ export async function activate(context: vscode.ExtensionContext) {
     // after initializing the env, create the workspaceFolder wrapper
     const folders = await Folders.all();
 
-    // Server options
-    // const serverOptions: ServerOptions = {
-    //   run: {
-    //     command: serverPath,
-    //     args: ['start'],
-    //     // options: {
-    //     //   shell: true, // Use shell to execute the command
-    //     //   // env: { ...process.env },
-    //     // },
-    //     // transport: client.transport.kind ,
-    //   },
-    //   debug: {
-    //     command: serverPath,
-    //     args: ['start'],
-    //   },
-    // };
     const serverOptions: ServerOptions = await createServerOptions(context);
 
     const openDocument = vscode.window.activeTextEditor?.document;
@@ -98,7 +87,7 @@ export async function activate(context: vscode.ExtensionContext) {
       traceOutputChannel: vscode.window.createOutputChannel('fish-lsp Trace'),
       workspaceFolder: vscode.workspace.workspaceFolders?.at(0),
       progressOnInitialization: true,
-      revealOutputChannelOn: RevealOutputChannelOn.Info,
+      revealOutputChannelOn: FishLspOutputChannel.reveal(),
       markdown: {
         isTrusted: true, // Enable trusted markdown rendering
       },
@@ -119,7 +108,6 @@ export async function activate(context: vscode.ExtensionContext) {
     client.setTrace(Trace.fromString(config.trace));
 
     // Start the language client 
-    // await client.stop();
     await client.start();
 
     // Make sure the client is registered in the context
@@ -134,9 +122,7 @@ export async function activate(context: vscode.ExtensionContext) {
     // Show the status of the extension
     winlog.info('Fish LSP extension activated successfully');
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    winlog.error(`Failed to activate Fish LSP extension: ${message}`);
-    throw error;
+    client.error('Start failed', error, 'force');
   }
 }
 

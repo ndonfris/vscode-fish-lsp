@@ -80,7 +80,7 @@ export async function getServerPath(context: ExtensionContext): Promise<string> 
   return serverPath;
 }
 
-const isUsingProcessCommand = () => {
+export const isUsingProcessCommand = () => {
   if (config.executablePath.trim() !== '' && PathUtils.isExecutable(config.executablePath)) {
     return true;
   }
@@ -115,9 +115,6 @@ export async function createServerOptions(context: ExtensionContext): Promise<Se
   const runCommand: ServerOptions = {
     module: serverModule,
     transport: TransportKind.ipc,
-    // options: {
-    //   env,
-    // }
   };
   const debugCommand: ServerOptions = {
     ...runCommand,

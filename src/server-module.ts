@@ -1,19 +1,11 @@
 import FishServer from 'fish-lsp';
-// import { ProposedFeatures } from 'vscode-languageclient/node';
 import {
   createConnection,
   InitializeParams,
   InitializeResult,
   ProposedFeatures,
-  // ProposedFeatures,
-  // StreamMessageReader,
-  // StreamMessageWriter,
 } from 'vscode-languageserver/node';
 
-// const connection = createConnection(
-//   new StreamMessageReader(process.stdin),
-//   new StreamMessageWriter(process.stdout),
-// );
 const connection = createConnection(ProposedFeatures.all)
 
 connection.onInitialize(
@@ -22,17 +14,6 @@ connection.onInitialize(
     return initializeResult;
   },
 );
-// connection.onInitialize(async (params: InitializeParams): Promise<InitializeResult> => {
-//
-//   // Start listening
-//   connection.listen();
-//   const server = await FishServer.create(connection, params)
-//   // server.register(connection)
-//   return {
-//     capabilities: server.capabilities(),
-//   }
-// })
-
 connection.listen();
 
 // Don't die on unhandled Promise rejections
