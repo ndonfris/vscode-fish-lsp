@@ -5,6 +5,7 @@ package-lock.json
 
 *.tgz
 *.vsix
+*.bundle
 
 test-workspace
 extensions.json
