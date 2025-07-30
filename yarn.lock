@@ -2647,10 +2647,10 @@ find-up@^5.0.0:
     locate-path "^6.0.0"
     path-exists "^4.0.0"
 
-fish-lsp@1.0.11-pre.5:
-  version "1.0.11-pre.5"
-  resolved "https://registry.yarnpkg.com/fish-lsp/-/fish-lsp-1.0.11-pre.5.tgz#46157dedaea2fc1ade805a0d241f103072d2effc"
-  integrity sha512-pPBMVAERFQTeLjaej4ZwAEYKIK+umiNGfokXVGpTKU/vjXvChY0fVvz5A8LJ2oynXE8xCmGPWKOVPMhqNoU7AA==
+fish-lsp@^1.0.11-pre.9:
+  version "1.0.11-pre.9"
+  resolved "https://registry.yarnpkg.com/fish-lsp/-/fish-lsp-1.0.11-pre.9.tgz#e5ebc837ca92d2adc6dfe071ebe93b59b9a7af82"
+  integrity sha512-Q/BGRkmP5stIDL2lVRrxB9k5RlQ08ypJy1zbHH6cOIdx9V9gDoJv+8NrNdTZ3YkTk3WbYfr3bRZBUycUw56o7A==
   dependencies:
     "@babel/runtime-corejs3" "^7.28.0"
     commander "^12.0.0"
