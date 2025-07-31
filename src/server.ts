@@ -1,5 +1,6 @@
-import path from 'path';
+import * as path from 'path';
 import { config, execFileAsync, PathUtils, winlog } from './utils';
+import * as vscode from 'vscode';
 import { env, ExtensionContext } from 'vscode';
 import { ServerOptions, TransportKind } from 'vscode-languageclient/node';
 
@@ -127,5 +128,15 @@ export async function createServerOptions(context: ExtensionContext): Promise<Se
     run: runCommand,
     debug: debugCommand,
   };
+}
+
+export function getBrowserServerModule(context: ExtensionContext): vscode.Uri {
+  return vscode.Uri.joinPath(
+    context.extensionUri,
+    'node_modules',
+    'fish-lsp',
+    'out',
+    'web.js',
+  )
 }
 

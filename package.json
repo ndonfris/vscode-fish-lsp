@@ -13,6 +13,7 @@
     "url": "https://github.com/sponsors/ndonfris"
   },
   "bin": "./node_modules/fish-lsp/bin/fish-lsp",
+  "browser": "./out/browser-extension.js",
   "engines": {
     "vscode": "^1.75.0"
   },
@@ -349,7 +350,7 @@
     "restoreMocks": false
   },
   "dependencies": {
-    "fish-lsp": "^1.0.11-pre.9",
+    "fish-lsp": "./fish-lsp-v1.0.11-pre.10.tgz",
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver": "^9.0.1"
   },
