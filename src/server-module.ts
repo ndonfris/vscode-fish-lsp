@@ -1,3 +1,4 @@
+//const FishServer = require('fish-lsp');
 import FishServer from 'fish-lsp';
 import {
   createConnection,
@@ -11,6 +12,7 @@ const connection = createConnection(ProposedFeatures.all)
 connection.onInitialize(
   async (params: InitializeParams): Promise<InitializeResult> => {
     const { initializeResult } = await FishServer.create(connection, params);
+
     return initializeResult;
   },
 );

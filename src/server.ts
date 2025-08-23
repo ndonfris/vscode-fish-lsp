@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { config, execFileAsync, PathUtils, winlog } from './utils';
 import * as vscode from 'vscode';
-import { env, ExtensionContext } from 'vscode';
+import { ExtensionContext } from 'vscode';
 import { ServerOptions, TransportKind } from 'vscode-languageclient/node';
 
 /**
@@ -12,7 +12,7 @@ export function extensionFishLspPath(context: ExtensionContext): string {
     context.extensionPath,
     'node_modules',
     'fish-lsp',
-    'bin',
+    'dist',
     'fish-lsp'
   );
 }
@@ -102,12 +102,12 @@ export async function createServerOptions(context: ExtensionContext): Promise<Se
     return {
       command: serverPath,
       args: ['start'],
-      options: {
-        env: {
-          ...env,
-          // Add any additional environment variables if needed
-        },
-      },
+      // options: {
+      //   env: {
+      //     ...env,
+      //     // Add any additional environment variables if needed
+      //   },
+      // },
     };
   }
   // If not using a process command, use the bundled server module
