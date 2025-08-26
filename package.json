@@ -350,7 +350,7 @@
     "restoreMocks": false
   },
   "dependencies": {
-    "fish-lsp": "^1.0.11-pre.13",
+    "fish-lsp": "^1.0.11-pre.14",
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver": "^9.0.1"
   },
