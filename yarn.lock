@@ -2684,10 +2684,10 @@ find-up@^5.0.0:
     locate-path "^6.0.0"
     path-exists "^4.0.0"
 
-fish-lsp@^1.0.11-pre.15:
-  version "1.0.11-pre.15"
-  resolved "https://registry.yarnpkg.com/fish-lsp/-/fish-lsp-1.0.11-pre.15.tgz#ae471875840d55f8f52554b034221692c6b54161"
-  integrity sha512-OgjG0Fg9Yh9dNiJHxmBW10DiJbWmCekNJ7rmwoQSC1q0qrq1i4LD9I7NN4N3fYCxERNRWlO6P73vYiEap4YhTA==
+fish-lsp@^1.0.11-pre.16:
+  version "1.0.11-pre.16"
+  resolved "https://registry.yarnpkg.com/fish-lsp/-/fish-lsp-1.0.11-pre.16.tgz#33fde5167fdc1bf78e95cc3801679512de794a0b"
+  integrity sha512-Eh7wvmJ+V/f0sWGzxJjnBbW23xM2GTeleygwIfjBDOdbytWpG4WOODSLpDBv1yga3uetymZC1p6B4YF1RhyD0Q==
   dependencies:
     chalk "^5.5.0"
     commander "^12.0.0"
