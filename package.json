@@ -2,7 +2,7 @@
   "name": "fish-lsp",
   "displayName": "fish-lsp",
   "description": "fish shell language support via fish-lsp",
-  "version": "0.1.13-pre.3",
+  "version": "0.1.14-pre.1",
   "license": "MIT",
   "publisher": "ndonfris",
   "author": {
@@ -309,8 +309,10 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "run-s lint compile",
+    "vscode:prepublish": "run-s lint build",
     "compile": "tsc -p ./",
+    "build": "node esbuild.config.mjs --production",
+    "build:watch": "node esbuild.config.mjs --watch",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src --fix",
     "debug:extension": "code --extensionDevelopmentPath=. ./test-workspace",
@@ -350,27 +352,24 @@
     "restoreMocks": false
   },
   "dependencies": {
-    "fish-lsp": "^1.0.11-pre.17",
+    "fish-lsp": "^1.0.11-pre.20",
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver": "^9.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",
     "@types/eslint": "^9.6.1",
-    "@types/glob": "^8.1.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.15.23",
     "@types/vscode": "^1.75.0",
     "@typescript-eslint/eslint-plugin": "^8.21.0",
     "@typescript-eslint/parser": "^8.21.0",
-    "@vscode/test-electron": "^2.3.2",
     "@vscode/vsce": "^3.6.0",
     "esbuild": "^0.25.5",
     "eslint": "^9.18.0",
     "glob": "^11.0.2",
     "globals": "^15.14.0",
     "jest": "^29.7.0",
-    "minimatch": "^3.1.2",
     "npm-run-all": "^4.1.5",
     "rimraf": "^6.0.1",
     "ts-jest": "^29.3.4",

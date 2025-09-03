@@ -135,8 +135,8 @@ export function getBrowserServerModule(context: ExtensionContext): vscode.Uri {
     context.extensionUri,
     'node_modules',
     'fish-lsp',
-    'out',
-    'web.js',
+    'dist',
+    'fish-lsp',
   )
 }
 

@@ -1,6 +1,8 @@
 .vscode/**
 tests/**
 .vscode-test/**
+node_modules/**
+!node_modules/fish-lsp/**
 src/**
 .gitignore
 .eslintrc.json

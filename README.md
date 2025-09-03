@@ -170,7 +170,22 @@ set -gx fish_lsp_show_client_popups
 # Try to limit the fish-lsp's workspace searching to only the current workspace open.
 # (Options: 'true', 'false')
 # (Default: 'false')
-set -gx fish_lsp_single_workspace_support
+set -gx fish_lsp_single_workspace_support 
+
+# $fish_lsp_ignore_paths <ARRAY>
+# Glob paths to never search when indexing their parent folder
+# (Example Options: '**/.git/**', '**/node_modules/**', '**/vendor/**', 
+#                   '**/__pycache__/**', '**/docker/**', 
+#                   '**/containerized/**', '**/*.log', '**/tmp/**')
+# (Default: ['**/.git/**', '**/node_modules/**', '**/containerized/**', 
+#           '**/docker/**'])
+set -gx fish_lsp_ignore_paths 
+
+# $fish_lsp_max_workspace_depth <NUMBER>
+# The maximum depth for the lsp to search when starting up.
+# (Example Options: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20)
+# (Default: 5)
+set -gx fish_lsp_max_workspace_depth
 ```
 
 

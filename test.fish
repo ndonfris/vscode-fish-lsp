@@ -18,11 +18,11 @@ __test
 fish_add_path 
 
 # @fish-lsp-disable-next-line 4004
-function foo
+function foo -d 'foo fun'
     __test
-
 end
 
+  
 set -l arq_subcommands activateLicense refreshLicense ....
 #      ^^^^^^^^^^^^^^^ getReferences()
 complete -c arqc -n "not __fish_seen_subcommand_from $arq_subcommands" -a "$arq_subcommands"
