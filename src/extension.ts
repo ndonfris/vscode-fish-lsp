@@ -47,7 +47,7 @@ export async function activate(context: vscode.ExtensionContext) {
     // If we are using a subprocess command, ensure the serverPath is executable
     // A subproccess command here means that we are using the external `fish-lsp` binary and
     // not the bundled module for the server
-    if (isUsingProcessCommand() && !PathUtils.isExecutable(serverPath)) {
+    if (isUsingProcessCommand() && serverPath !== 'bundled-server-module' && !PathUtils.isExecutable(serverPath)) {
       winlog.error(`Fish-lsp server executable not found or not executable: ${serverPath}`);
       throw new Error(`Invalid fish-lsp server path: ${serverPath}`);
     }
@@ -67,11 +67,17 @@ export async function activate(context: vscode.ExtensionContext) {
 
     workspaceCollection.add(...allWorkspaces);
 
-    const initializationOptions = {
+    const defaultInitializationOptions = {
       fishPath,
       rootUri: workspaceCollection.get(openDocument?.uri || '')?.uri,
       rootPath: workspaceCollection.get(openDocument?.uri || '')?.path,
       workspaceFolders: folders.vscode.serverFolders(),
+    };
+
+    // Merge custom initializationOptions from settings with defaults
+    const initializationOptions = {
+      ...defaultInitializationOptions,
+      ...config.initializationOptions,
     };
 
     winlog.log(`Fish LSP Initialization Options: ${JSON.stringify(initializationOptions, null, 2)}`);

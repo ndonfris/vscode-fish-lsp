@@ -2,7 +2,7 @@
   "name": "fish-lsp",
   "displayName": "fish-lsp",
   "description": "fish shell language support via fish-lsp",
-  "version": "0.1.14",
+  "version": "0.1.15-pre.0",
   "license": "MIT",
   "publisher": "ndonfris",
   "author": {
@@ -132,6 +132,12 @@
           "type": "boolean",
           "default": true,
           "description": "Enable the fish-lsp VSCode extension to add new WorkspaceFolders when the server opens a fish document in another fish workspace. Without this setting enabled, going to definitions outside of the current workspace will not index any new workspaces. Enabling this setting will automatically index new workspaces, and add them to the current VSCode workspace."
+        },
+        "fish-lsp.initializationOptions": {
+          "type": "object",
+          "default": {},
+          "description": "Custom initializationOptions to send to the fish-lsp server. These will be merged with the default options. See `fish-lsp env --show` for available options and their documentation.",
+          "markdownDescription": "Custom initializationOptions to send to the fish-lsp server. These will be merged with the default options.\n\nRun `fish-lsp env --show` to see all available options and their documentation.\n\n**Example:**\n```json\n{\n  \"fish_lsp_log_file\": \"/tmp/fish-lsp.log\",\n  \"fish_lsp_disabled_handlers\": [\"diagnostic\"],\n  \"fish_lsp_max_background_files\": 1000\n}\n```"
         }
       }
     },
@@ -360,7 +366,7 @@
     "@eslint/js": "^9.18.0",
     "@types/eslint": "^9.6.1",
     "@types/jest": "^29.5.14",
-    "@types/node": "^22.15.23",
+    "@types/node": "^24.3.1",
     "@types/vscode": "^1.75.0",
     "@typescript-eslint/eslint-plugin": "^8.21.0",
     "@typescript-eslint/parser": "^8.21.0",
