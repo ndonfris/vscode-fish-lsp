@@ -62,7 +62,7 @@ async function main() {
     sourcesContent: false,
     platform: 'node',
     outfile: 'out/server-module.js',
-    external: ['fish-lsp'],
+    external: [],
     logLevel: 'silent',
     plugins: [esbuildProblemMatcherPlugin],
   })

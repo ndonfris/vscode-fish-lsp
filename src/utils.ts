@@ -19,6 +19,7 @@ export type FishLspConfig = {
   readonly executablePath: string;
   readonly workspaceFolders: readonly string[];
   readonly enableWorkspaceFolders: boolean;
+  readonly initializationOptions: Record<string, any>;
 };
 
 const parseConfig = (): FishLspConfig => {
@@ -29,7 +30,8 @@ const parseConfig = (): FishLspConfig => {
     useGlobalExecutable: config.get('useGlobalExecutable', false),
     executablePath: config.get('executablePath', ''),
     workspaceFolders: config.get('workspaceFolders', []),
-    enableWorkspaceFolders: config.get('enableWorkspaceFolders', true)
+    enableWorkspaceFolders: config.get('enableWorkspaceFolders', true),
+    initializationOptions: config.get('initializationOptions', {})
   } as FishLspConfig;
 };
 
