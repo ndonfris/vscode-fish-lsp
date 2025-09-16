@@ -133,7 +133,7 @@
     "escapes": {
       "patterns": [
         {
-          "match": "\\\\[\\\\\"\\$\\n\\t]",
+          "match": "\\\\(\\\"|\\$|$|\\\\)",
           "name": "constant.character.escape.fish"
         }
       ]
