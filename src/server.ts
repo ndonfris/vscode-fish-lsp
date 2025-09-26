@@ -75,6 +75,12 @@ export async function getServerPath(context: ExtensionContext): Promise<string> 
       serverPath = extServerPath;
       return serverPath;
     }
+    // For default configuration (no global executable, no custom path), the bundled server path doesn't exist
+    // This is expected when using the bundled server module approach
+    if (!useGlobalExecutable && executablePath.trim() === '') {
+      winlog.info('Using bundled server module instead of fish-lsp executable');
+      return 'bundled-server-module'; // Return a placeholder
+    }
     winlog.error(`Server path '${serverPath}' is not executable.`, { override: true });
     throw new Error(`'fish-lsp' binary at '${serverPath}' is not executable.`);
   }
