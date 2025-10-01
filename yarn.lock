@@ -2624,10 +2624,10 @@ find-up@^5.0.0:
     locate-path "^6.0.0"
     path-exists "^4.0.0"
 
-fish-lsp@^1.0.11:
-  version "1.0.11"
-  resolved "https://registry.yarnpkg.com/fish-lsp/-/fish-lsp-1.0.11.tgz#1a21e324dc9b388674adbe971234e13bcc6e6076"
-  integrity sha512-C/O7+VpEAlG9hTc8QlMN5f6VkUWPAMUBAicZK5nFlgrLMYFYWX3xLsD6RqzNvlaKhDhH4Nx8O8mINO5BEj/K4g==
+fish-lsp@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/fish-lsp/-/fish-lsp-1.1.0.tgz#a3da324060d730f0f15d266dfd67104f92f181b6"
+  integrity sha512-4RqzgyCDgww7VH3UG2iNjqOSU68MQMrb9VBFLV0tXeAqsEkRSC293j52oDA5Zd3vVt2JxaxIvidAYjb7paWQXg==
   dependencies:
     "@ndonfris/tree-sitter-fish" "^3.6.0"
     chalk "^5.5.0"
@@ -2640,7 +2640,7 @@ fish-lsp@^1.0.11:
     memfs "^4.38.1"
     npm-run-all "^4.1.5"
     source-map-support "^0.5.21"
-    tree-sitter "^0.25.0"
+    tree-sitter "^0.21.0"
     unionfs "^4.6.0"
     vscode-languageserver "^9.0.1"
     vscode-languageserver-protocol "^3.17.5"
@@ -4199,12 +4199,12 @@ node-addon-api@^4.3.0:
   resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-4.3.0.tgz#52a1a0b475193e0928e98e0426a0d1254782b77f"
   integrity sha512-73sE9+3UaLYYFmDsFZnqCInzPyh3MqIwZO9cw58yIqAZhONrrabrYyYe3TuIqtIiOuTXVhsGau8hcrhhwSsDIQ==
 
-node-addon-api@^8.3.0:
+node-addon-api@^8.0.0:
   version "8.5.0"
   resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-8.5.0.tgz#c91b2d7682fa457d2e1c388150f0dff9aafb8f3f"
   integrity sha512-/bRZty2mXUIFY/xU5HLvveNHlswNJej+RnxBjOMkidWfwZzgTbPG1E3K5TOxRLOR+5hX7bSofy8yf1hZevMS8A==
 
-node-gyp-build@^4.8.4:
+node-gyp-build@^4.8.0:
   version "4.8.4"
   resolved "https://registry.yarnpkg.com/node-gyp-build/-/node-gyp-build-4.8.4.tgz#8a70ee85464ae52327772a90d66c6077a900cfc8"
   integrity sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ==
@@ -5326,13 +5326,13 @@ tree-dump@^1.0.3:
   resolved "https://registry.yarnpkg.com/tree-dump/-/tree-dump-1.1.0.tgz#ab29129169dc46004414f5a9d4a3c6e89f13e8a4"
   integrity sha512-rMuvhU4MCDbcbnleZTFezWsaZXRFemSqAM+7jPnzUl1fo9w3YEKOxAeui0fz3OI4EU4hf23iyA7uQRVko+UaBA==
 
-tree-sitter@^0.25.0:
-  version "0.25.0"
-  resolved "https://registry.yarnpkg.com/tree-sitter/-/tree-sitter-0.25.0.tgz#d9d94ba00b501df49826c10c0f74037b890788eb"
-  integrity sha512-PGZZzFW63eElZJDe/b/R/LbsjDDYJa5UEjLZJB59RQsMX+fo0j54fqBPn1MGKav/QNa0JR0zBiVaikYDWCj5KQ==
+tree-sitter@^0.21.0:
+  version "0.21.1"
+  resolved "https://registry.yarnpkg.com/tree-sitter/-/tree-sitter-0.21.1.tgz#fbb34c09056700814af0e1e37688e06463ba04c4"
+  integrity sha512-7dxoA6kYvtgWw80265MyqJlkRl4yawIjO7S5MigytjELkX43fV2WsAXzsNfO7sBpPPCF5Gp0+XzHk0DwLCq3xQ==
   dependencies:
-    node-addon-api "^8.3.0"
-    node-gyp-build "^4.8.4"
+    node-addon-api "^8.0.0"
+    node-gyp-build "^4.8.0"
 
 ts-api-utils@^2.1.0:
   version "2.1.0"
