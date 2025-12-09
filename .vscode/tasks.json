@@ -3,40 +3,82 @@
   "tasks": [
     {
       "label": "compile",
-      "type": "npm",
-      "script": "compile",
+      "type": "shell",
+      "command": "yarn",
+      "args": ["compile"],
       "group": {
         "kind": "build",
         "isDefault": true
       },
       "presentation": {
         "echo": true,
-        "reveal": "silent",
+        "reveal": "never",
         "focus": false,
         "panel": "shared",
-        "showReuseMessage": true,
+        "showReuseMessage": false,
         "clear": false
-      },
-      "options": {
-        "statusbar": {
-          "label": "$(gear~spin) Compiling..."
-        }
       },
       "problemMatcher": "$tsc"
     },
     {
       "label": "watch",
-      "type": "npm", 
-      "script": "watch",
+      "type": "shell",
+      "command": "yarn",
+      "args": ["watch"],
       "group": "build",
       "presentation": {
         "echo": true,
-        "reveal": "silent",
+        "reveal": "never",
         "focus": false,
-        "panel": "shared"
+        "panel": "dedicated"
       },
       "isBackground": true,
       "problemMatcher": "$tsc-watch"
+    },
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "yarn",
+      "args": ["build"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "lint",
+      "type": "shell",
+      "command": "yarn",
+      "args": ["lint"],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": "$eslint-stylish"
+    },
+    {
+      "label": "test",
+      "type": "shell",
+      "command": "yarn",
+      "args": ["test"],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared"
+      },
+      "problemMatcher": []
     },
     {
       "label": "Setup Fish LSP Logging",
@@ -44,42 +86,8 @@
       "command": "fish",
       "args": [
         "-c",
-        "set -gx fish_lsp_log_file (pwd)/fish-lsp.log; set -gx fish_lsp_log_level debug; echo 'Environment set:'; echo '  fish_lsp_log_file='(pwd)/fish-lsp.log; echo '  fish_lsp_log_level=debug'; echo 'Now restart VS Code or run Restart Fish LSP task'"
+        "set -gx fish_lsp_log_file (pwd)/fish-lsp.log; set -gx fish_lsp_log_level debug; echo 'Environment set:'; echo '  fish_lsp_log_file='(pwd)/fish-lsp.log; echo '  fish_lsp_log_level=debug'"
       ],
-      "group": "test",
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": true,
-        "panel": "new"
-      }
-    },
-    {
-      "label": "Restart Fish LSP",
-      "command": "${command:fish-lsp.restart}",
-      "group": "test",
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": true,
-        "panel": "shared"
-      }
-    },
-    {
-      "label": "Setup and Restart Fish LSP",
-      "dependsOrder": "sequence",
-      "dependsOn": [
-        "Setup Fish LSP Logging",
-        "Restart Fish LSP"
-      ],
-      "group": {
-        "kind": "test",
-        "isDefault": true
-      }
-    },
-    {
-      "label": "Show Fish LSP Log File",
-      "command": "${command:fish-lsp.showLogFile}",
       "group": "test",
       "presentation": {
         "echo": true,
@@ -94,39 +102,17 @@
       "command": "fish",
       "args": [
         "-c",
-        "test -f (pwd)/fish-lsp.log && tail -f (pwd)/fish-lsp.log || echo 'No log file found. Run Setup and Restart Fish LSP first.'"
+        "test -f (pwd)/fish-lsp.log && tail -f (pwd)/fish-lsp.log || echo 'No log file found. Run Setup Fish LSP Logging first.'"
       ],
       "group": "test",
       "presentation": {
         "echo": true,
         "reveal": "always",
         "focus": false,
-        "panel": "new"
+        "panel": "dedicated"
       },
       "isBackground": true,
       "problemMatcher": []
-    },
-    {
-      "label": "Fish LSP Info",
-      "command": "${command:fish-lsp.info}",
-      "group": "test",
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": true,
-        "panel": "shared"
-      }
-    },
-    {
-      "label": "Fish LSP Check Health",
-      "command": "${command:fish-lsp.showCheckHealth}",
-      "group": "test",
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": true,
-        "panel": "shared"
-      }
     },
     {
       "label": "Clean Logs and Temp Files",
@@ -136,20 +122,13 @@
         "-c",
         "rm -f (pwd)/fish-lsp.log /tmp/fish-lsp*.log; rm -rf .vscode-test-data-*; echo 'Cleaned logs and temp files'"
       ],
-      "group": "test"
-    },
-    {
-      "label": "Lint",
-      "type": "npm",
-      "script": "lint",
-      "group": "build",
+      "group": "test",
       "presentation": {
         "echo": true,
         "reveal": "always",
-        "focus": false,
+        "focus": true,
         "panel": "shared"
-      },
-      "problemMatcher": "$eslint-stylish"
+      }
     }
   ]
 }

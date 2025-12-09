@@ -11,6 +11,7 @@ function __test -d 'test function' -a var1 var2 var3 --inherit-variable v --on-v
     echo '$var3: '$var3
     if true
         echo a
+        continue
     end
 end
 __test
