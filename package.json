@@ -2,7 +2,7 @@
   "name": "fish-lsp",
   "displayName": "fish-lsp",
   "description": "fish shell language support via fish-lsp",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "license": "MIT",
   "publisher": "ndonfris",
   "author": {
@@ -358,7 +358,7 @@
     "restoreMocks": false
   },
   "dependencies": {
-    "fish-lsp": "^1.1.1",
+    "fish-lsp": "^1.1.2",
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver": "^9.0.1"
   },

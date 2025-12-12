@@ -2625,10 +2625,10 @@ find-up@^5.0.0:
     locate-path "^6.0.0"
     path-exists "^4.0.0"
 
-fish-lsp@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/fish-lsp/-/fish-lsp-1.1.1.tgz#d6bd2812f83374b3f23541af11d866ff97c9bd6a"
-  integrity sha512-AJXtEoL9m5NDLExY9T/I3HxnJJ0rGYtLVNXnoBtPkBYYDn8mHIYqJ84R4ydXKuHDx82l7cLPSnwQk2WcUhY7Rg==
+fish-lsp@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/fish-lsp/-/fish-lsp-1.1.2.tgz#9e833886ad4b0e7fb10600b3622bea502143585f"
+  integrity sha512-3BLX6YkWqkyoTBej0Yi0gKYU/HNUnp2qekmXMgImbtn01num+WCxbtcNKFLXi3Cn24jNWbytsRq86I3AFo5mlQ==
   dependencies:
     "@esdmr/tree-sitter-fish" "^3.6.0"
     chalk "^5.5.0"
