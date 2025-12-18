@@ -2625,10 +2625,10 @@ find-up@^5.0.0:
     locate-path "^6.0.0"
     path-exists "^4.0.0"
 
-fish-lsp@^1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/fish-lsp/-/fish-lsp-1.1.2.tgz#9e833886ad4b0e7fb10600b3622bea502143585f"
-  integrity sha512-3BLX6YkWqkyoTBej0Yi0gKYU/HNUnp2qekmXMgImbtn01num+WCxbtcNKFLXi3Cn24jNWbytsRq86I3AFo5mlQ==
+fish-lsp@^1.1.3:
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/fish-lsp/-/fish-lsp-1.1.3.tgz#7cead4acda70bec9327d3df4184f17b03c466109"
+  integrity sha512-oGBeGZEeH7sWKX7XFSoo52MrwKAixYvCJtuRCAxhIKhF/tXwzSnlUUX5SWQguCIPY94fH+uQAq43qhjfJ96oUw==
   dependencies:
     "@esdmr/tree-sitter-fish" "^3.6.0"
     chalk "^5.5.0"
@@ -2641,7 +2641,6 @@ fish-lsp@^1.1.2:
     memfs "^4.38.1"
     npm-run-all "^4.1.5"
     source-map-support "^0.5.21"
-    tree-sitter "^0.21.0"
     unionfs "^4.6.0"
     vscode-languageserver "^9.0.1"
     vscode-languageserver-protocol "^3.17.5"
@@ -4200,16 +4199,6 @@ node-addon-api@^4.3.0:
   resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-4.3.0.tgz#52a1a0b475193e0928e98e0426a0d1254782b77f"
   integrity sha512-73sE9+3UaLYYFmDsFZnqCInzPyh3MqIwZO9cw58yIqAZhONrrabrYyYe3TuIqtIiOuTXVhsGau8hcrhhwSsDIQ==
 
-node-addon-api@^8.0.0:
-  version "8.5.0"
-  resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-8.5.0.tgz#c91b2d7682fa457d2e1c388150f0dff9aafb8f3f"
-  integrity sha512-/bRZty2mXUIFY/xU5HLvveNHlswNJej+RnxBjOMkidWfwZzgTbPG1E3K5TOxRLOR+5hX7bSofy8yf1hZevMS8A==
-
-node-gyp-build@^4.8.0:
-  version "4.8.4"
-  resolved "https://registry.yarnpkg.com/node-gyp-build/-/node-gyp-build-4.8.4.tgz#8a70ee85464ae52327772a90d66c6077a900cfc8"
-  integrity sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ==
-
 node-int64@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/node-int64/-/node-int64-0.4.0.tgz#87a9065cdb355d3182d8f94ce11188b825c68a3b"
@@ -5326,14 +5315,6 @@ tree-dump@^1.0.3, tree-dump@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/tree-dump/-/tree-dump-1.1.0.tgz#ab29129169dc46004414f5a9d4a3c6e89f13e8a4"
   integrity sha512-rMuvhU4MCDbcbnleZTFezWsaZXRFemSqAM+7jPnzUl1fo9w3YEKOxAeui0fz3OI4EU4hf23iyA7uQRVko+UaBA==
-
-tree-sitter@^0.21.0:
-  version "0.21.1"
-  resolved "https://registry.yarnpkg.com/tree-sitter/-/tree-sitter-0.21.1.tgz#fbb34c09056700814af0e1e37688e06463ba04c4"
-  integrity sha512-7dxoA6kYvtgWw80265MyqJlkRl4yawIjO7S5MigytjELkX43fV2WsAXzsNfO7sBpPPCF5Gp0+XzHk0DwLCq3xQ==
-  dependencies:
-    node-addon-api "^8.0.0"
-    node-gyp-build "^4.8.0"
 
 ts-api-utils@^2.1.0:
   version "2.1.0"
