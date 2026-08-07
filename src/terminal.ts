@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as vscode from 'vscode';
 import type { LanguageClient } from 'vscode-languageclient/node';
 
@@ -23,11 +24,19 @@ interface TerminalAnalyzeResult {
 function terminalAnalysisEnabled(): boolean {
   return vscode.workspace
     .getConfiguration('fish-lsp')
-    .get<boolean>('terminal.enable', false);
+    .get<boolean>('terminal.enable', true);
+}
+
+function isFishTerminal(terminal: vscode.Terminal): boolean {
+  const options = terminal.creationOptions;
+  if ('shellPath' in options && typeof options.shellPath === 'string') {
+    return path.basename(options.shellPath).toLowerCase().startsWith('fish');
+  }
+  return terminal.name.toLowerCase().includes('fish');
 }
 
 function terminalId(terminal: vscode.Terminal): string {
-  return `${terminal.name}-${terminal.processId ?? 'unknown'}`;
+  return terminal.name;
 }
 
 function severityLabel(severity: number | undefined): string {
@@ -65,7 +74,7 @@ export function setupTerminalAnalysis(
   context.subscriptions.push(output, status);
 
   context.subscriptions.push(vscode.window.onDidStartTerminalShellExecution(async event => {
-    if (!terminalAnalysisEnabled()) return;
+    if (!terminalAnalysisEnabled() || !isFishTerminal(event.terminal)) return;
 
     const commandLine = event.execution.commandLine.value;
     if (!commandLine.trim()) return;
