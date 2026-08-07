@@ -5,6 +5,7 @@ import { FishWorkspaceCollection, Folders } from './workspace';
 import { setupFishLspCommands } from './commands';
 import { winlog, config, PathUtils, initializeFishEnvironment, FishLspOutputChannel } from './utils';
 import { setupFishLspEventHandlers } from './handlers';
+import { setupTerminalAnalysis } from './terminal';
 
 /********************************************************************
  *                                                                  *
@@ -113,7 +114,7 @@ export async function activate(context: vscode.ExtensionContext) {
     // set the trace level based on configuration
     client.setTrace(Trace.fromString(config.trace));
 
-    // Start the language client 
+    // Start the language client
     await client.start();
 
     // Make sure the client is registered in the context
@@ -124,7 +125,8 @@ export async function activate(context: vscode.ExtensionContext) {
     // Register client commands and event handlers
     setupFishLspEventHandlers(context);
     setupFishLspCommands(context);
-    
+    setupTerminalAnalysis(context, client);
+
     // Show the status of the extension
     winlog.info('Fish LSP extension activated successfully');
   } catch (error) {
