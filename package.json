@@ -61,6 +61,7 @@
         "extensions": [
           ".fish"
         ],
+        "firstLine": "^#![ \\t]*/(?:[^ \\t\\r\\n]+/)?(?:fish|env[ \\t]+(?:-S[ \\t]*)?fish)(?=[ \\t\\r]|$)",
         "configuration": "./language-configuration.json"
       }
     ],
